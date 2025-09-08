@@ -22,7 +22,7 @@ class AVLTree:
         if root is None:
             return Node(data)
 
-        # Usamos a função self.key para comparar, mecanismo de generalização da árvore
+        # Usamos a função self.key para indicar o dado a ser compararado. Mecanismo de generalização da árvore
         key_data = self.key(data)
         key_root = self.key(root.data)
 
@@ -38,7 +38,8 @@ class AVLTree:
         balance = self._get_balance(root)
 
         # Caso haja desbalanceamento (|balance|>1), aplicar um dos 4 casos de rotação
-        # Caso 1: Rotação Simples à Direita
+
+        # Caso 1: Rotação Simples à Direita (Left-Left)
         if balance > 1 and key_data < self.key(root.leftNode.data):
             #print(f"Desbalanceamento Simples à Esquerda em {root.data}, aplicando Rotação à Direita.")
             return self._right_rotate(root)
@@ -117,27 +118,37 @@ class AVLTree:
         self._walk_in_order(root.rightNode)
 
     def search(self, data):
-        # Busca um dado na árvore, se encontra retorna o dado, senão None
+        """Busca um dado na árvore, se encontra retorna o dado, senão None."""
 
-        # Variável auxiliar para medir a profundidade da busca, que equivale a número de passos até encontrar o valor
-        profundidade_busca = 0
-        node = self._search(self.root, data)
-        return node.data if node else None
+        # O metodo search retorna uma Variável auxiliar para medir a profundidade da busca, que equivale a número de passos até encontrar o valor
+        node, steps = self._search(self.root, data)
+        return (node.data, prof) if node else (None,prof)
 
     def _search(self, root, search_key):
-        # Metodo auxiliar recursivo que retorna o Nó se encontrado, caso contrário None
+        """Metodo auxiliar recursivo que retorna o Nó se encontrado, caso contrário None"""
         if not root:
-            return None # Não encontrado
+            return (None, 1) # Não encontrado
 
         key_root = self.key(root.data)
 
         if search_key == key_root:
-            return root
-        if search_key < key_root:
-            return self._search(root.leftNode, search_key)
-        else:
-            return self._search(root.rightNode, search_key)
+            return (root, 1)
 
+        if search_key < key_root:
+            node, steps = self._search(root.leftNode, search_key)
+            return (node, steps+1)
+        else:
+            node, steps = self._search(root.rightNode, search_key)
+            return (node, steps+1)
+
+
+myTree = AVLTree()
+myTree.insert(10)
+myTree.insert(2)
+myTree.insert(11)
+myTree.insert(15)
+myTree.insert(8)
+myTree.insert(5)
 
 myTree = AVLTree()
 myTree.insert(30)
@@ -146,22 +157,9 @@ myTree.insert(20)
 myTree.insert(10)
 myTree.insert(25)
 myTree.insert(5)
-resultado = myTree.search(5)
+busca = 5
+resultado, profundidade = myTree.search(busca)
 if (resultado is not None):
-    print(f"Encontrado: {resultado}")
+    print(f"Encontrado: {resultado}, profundidade: {profundidade}")
 else:
-    print("15 não encontrado")
-
-
-
-
-
-# myTree = BalAVLTree(50)
-# myTree.insert(20)
-# myTree.insert(70)
-# myTree.insert(10)
-# myTree.insert(40)
-# myTree.insert(60)
-# #myTree.push(25)
-# myTree.insert(42)
-# myTree.insert(45)
+    print(f"{busca} não encontrado, profundidade: {profundidade}")
