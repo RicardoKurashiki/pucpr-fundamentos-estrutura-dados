@@ -1,4 +1,3 @@
-from tqdm import tqdm
 import random as rd
 
 def generate_data(n):
@@ -10,7 +9,7 @@ def generate_data(n):
     @return: list
     """
     data = []
-    for i in tqdm(range(n), desc="Criando registros"):
+    for i in range(n):
         id = rd.randint(100000000, 999999999)
         name = f'Nome {i + 1}'
         salary = round(rd.uniform(1000, 10000), 2)

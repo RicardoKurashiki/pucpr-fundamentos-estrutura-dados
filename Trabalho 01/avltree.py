@@ -57,7 +57,7 @@ class AVLTree:
 
         # Caso 4: Rotação Dupla Direita-Esquerda (Right-Left)
         if balance < -1 and key_data < self.key(root.rightNode.data):
-            print(f"Desbalanceamento RL em {root.data}, aplicando Rotação Direita-Esquerda.")
+            # print(f"Desbalanceamento RL em {root.data}, aplicando Rotação Direita-Esquerda.")
             root.rightNode = self._right_rotate(root.rightNode)
             return self._left_rotate(root)
 
