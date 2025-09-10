@@ -38,9 +38,9 @@ def linear_array_test(data):
     pass
 
 def tree_test(data):
-    tree = AVLTree()
+    tree = AVLTree(key=lambda registro: registro[0])
     for item in data:
-        tree.insert(item[0])
+        tree.insert(item)
     tree.search(data[len(data) // 2][0])
 
 def hash_test(data):
