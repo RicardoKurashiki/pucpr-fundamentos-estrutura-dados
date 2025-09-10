@@ -15,6 +15,5 @@ def generate_data(n):
         salary = round(rd.uniform(1000, 10000), 2)
         code = f'{id:d}-{rd.randint(1, 1000)}'
         data.append([id, name, salary, code])
-    print(f"Criado {n} registros")
     return data
 

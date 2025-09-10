@@ -141,25 +141,25 @@ class AVLTree:
             node, steps = self._search(root.rightNode, search_key)
             return (node, steps+1)
 
+if __name__ == "__main__":
+    myTree = AVLTree()
+    myTree.insert(10)
+    myTree.insert(2)
+    myTree.insert(11)
+    myTree.insert(15)
+    myTree.insert(8)
+    myTree.insert(5)
 
-myTree = AVLTree()
-myTree.insert(10)
-myTree.insert(2)
-myTree.insert(11)
-myTree.insert(15)
-myTree.insert(8)
-myTree.insert(5)
-
-myTree = AVLTree()
-myTree.insert(30)
-myTree.insert(40)
-myTree.insert(20)
-myTree.insert(10)
-myTree.insert(25)
-myTree.insert(5)
-busca = 5
-resultado, profundidade = myTree.search(busca)
-if (resultado is not None):
-    print(f"Encontrado: {resultado}, profundidade: {profundidade}")
-else:
-    print(f"{busca} não encontrado, profundidade: {profundidade}")
+    myTree = AVLTree()
+    myTree.insert(30)
+    myTree.insert(40)
+    myTree.insert(20)
+    myTree.insert(10)
+    myTree.insert(25)
+    myTree.insert(5)
+    busca = 5
+    resultado, profundidade = myTree.search(busca)
+    if (resultado is not None):
+        print(f"Encontrado: {resultado}, profundidade: {profundidade}")
+    else:
+        print(f"{busca} não encontrado, profundidade: {profundidade}")

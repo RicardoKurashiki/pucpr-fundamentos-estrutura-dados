@@ -1,0 +1,35 @@
+--------------------------------
+
+| Size: 100000
+| Iteration: 0
+| Memory Usage:   9232 bytes | CPU Usage: 18.1 % 
+| Time: 1.9181 s 
+
+--------------------------------
+
+| Size: 100000
+| Iteration: 1
+| Memory Usage:  10800 bytes | CPU Usage: 14.8 % 
+| Time: 1.6540 s 
+
+--------------------------------
+
+| Size: 100000
+| Iteration: 2
+| Memory Usage:   9456 bytes | CPU Usage: 21.4 % 
+| Time: 1.7341 s 
+
+--------------------------------
+
+| Size: 100000
+| Iteration: 3
+| Memory Usage:   9456 bytes | CPU Usage: 20.2 % 
+| Time: 1.9009 s 
+
+--------------------------------
+
+| Size: 100000
+| Iteration: 4
+| Memory Usage:   9360 bytes | CPU Usage: 15.5 % 
+| Time: 1.9599 s 
+
