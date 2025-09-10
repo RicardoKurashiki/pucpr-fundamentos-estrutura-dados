@@ -1,7 +1,7 @@
 
 
 class Node:
-  def __init__(self, data) -> None:
+  def __init__(self, data):
       self.data = data
       self.rightNode = None
       self.leftNode = None
@@ -120,7 +120,7 @@ class AVLTree:
     def search(self, data):
         """Busca um dado na árvore, se encontra retorna o dado, senão None."""
 
-        # O metodo search retorna uma Variável auxiliar para medir a profundidade da busca, que equivale a número de passos até encontrar o valor
+        # O metodo search retorna uma Variável auxiliar para medir a profundidade da busca, que equivale ao número de passos até encontrar o valor
         node, steps = self._search(self.root, data)
         return (node.data, steps) if node else (None, steps)
 
