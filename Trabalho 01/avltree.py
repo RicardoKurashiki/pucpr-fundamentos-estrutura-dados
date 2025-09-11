@@ -13,6 +13,8 @@ class AVLTree:
         # Se nenhuma função de chave for fornecida para indicar como obter o índice de comparação para a árvore,
         # retorna o próprio objeto, mantendo compatibilidade com dados simples como números
         self.key = key if key is not None else lambda x: x
+        # Inicializa o contador de rotações
+        self.rotation_count = 0
 
     def insert(self, data):
         self.root = self._insert(self.root, data)
@@ -66,6 +68,9 @@ class AVLTree:
 
     def _left_rotate(self, z):
         """Executa a rotação à esquerda na subárvore com raiz em z."""
+        # Incrementa o contador a cada rotação
+        self.rotation_count += 1
+
         y = z.rightNode
         T2 = y.leftNode
 
@@ -82,6 +87,9 @@ class AVLTree:
 
     def _right_rotate(self, z):
         """Executa a rotação à direita na subárvore com raiz em z."""
+        # Incrementa o contador a cada rotação
+        self.rotation_count += 1
+
         y = z.leftNode
         T2 = y.rightNode
 

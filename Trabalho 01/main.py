@@ -63,6 +63,10 @@ def tree_test(data):
         tree.insert(item)
     # Capturamos os dados (ignoramos) e o dicionário de métricas
     _, metrics = tree.search(data[len(data) // 2][0])
+
+    # Coleta a contagem de rotações e adiciona ao dicionário ---
+    metrics['Rotation Events'] = tree.rotation_count
+
     return metrics # Retornamos o dicionário
 
 def unbaltree_test(data):
