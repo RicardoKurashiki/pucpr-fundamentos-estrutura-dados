@@ -10,17 +10,31 @@ from avltree import AVLTree
 from unbaltree import UnBalTree
 
 def compute_algorithms(data, func, name, iteration, size):
+
+    # Objeto Process que representa o nosso script atual
+    process = p.Process(os.getpid())
+    # Mede o tempo de CPU inicial
+    cpu_before = process.cpu_times()
+
     p.cpu_percent()
-    sleep(0.05)
     tracemalloc.start()
 
-    start = time()
-    # A função de teste retorna um possível dicionário de métricas específicas
+    # A função de teste pode retornar um dicionário de métricas específicas
     specific_metrics = func(data)
-    end = time()
 
-    memory_usage = tracemalloc.get_tracemalloc_memory()
+    # Mede o tempo de CPU final
+    cpu_after = process.cpu_times()
+
+    #memory_usage = tracemalloc.get_tracemalloc_memory()
+    current_mem, peak_mem = tracemalloc.get_traced_memory()
     tracemalloc.stop()
+
+    # Calcula a diferença de tempo de CPU
+    cpu_time_user = cpu_after.user - cpu_before.user
+    cpu_time_system = cpu_after.system - cpu_before.system
+    total_cpu_time = cpu_time_user + cpu_time_system
+    # Usaremos o valor de PICO (peak_mem) para o nosso relatório.
+    memory_usage = peak_mem
 
     p_cpu_usage = p.cpu_percent()
 
@@ -31,9 +45,8 @@ def compute_algorithms(data, func, name, iteration, size):
             "--------------------------------\n\n"
             f"| Size: {size}\n"
             f"| Iteration: {iteration}\n"
-            f"| Memory Usage: {memory_usage:6d} bytes | CPU Usage: {p_cpu_usage} % \n"
-            f"| Time: {end - start:.4f} s \n"
-            "\n"
+            f"| Memory Usage: {memory_usage:9d} bytes | CPU Usage: {p_cpu_usage} % \n"
+            f"| CPU Time (user+system): {total_cpu_time:.4f} s\n"
         )
         # Loop genérico para salvar as eventuais métricas retornadas
         if specific_metrics is not None:

@@ -1,0 +1,50 @@
+--------------------------------
+
+| Size: 1000000
+| Iteration: 0
+| Memory Usage: 104000736 bytes | CPU Usage: 17.3 % 
+| Process Memory (RSS diff):   2220032 bytes
+| Wall Clock Time: 11.1718 s
+| CPU Time (user+system): 10.9219 s
+| Search Depth: 27
+
+--------------------------------
+
+| Size: 1000000
+| Iteration: 1
+| Memory Usage: 104000728 bytes | CPU Usage: 15.5 % 
+| Process Memory (RSS diff):   2125824 bytes
+| Wall Clock Time: 10.6672 s
+| CPU Time (user+system): 10.4688 s
+| Search Depth: 27
+
+--------------------------------
+
+| Size: 1000000
+| Iteration: 2
+| Memory Usage: 104001112 bytes | CPU Usage: 12.6 % 
+| Process Memory (RSS diff):  76496896 bytes
+| Wall Clock Time: 10.7736 s
+| CPU Time (user+system): 10.6250 s
+| Search Depth: 25
+
+--------------------------------
+
+| Size: 1000000
+| Iteration: 3
+| Memory Usage: 104000712 bytes | CPU Usage: 19.6 % 
+| Process Memory (RSS diff):  75350016 bytes
+| Wall Clock Time: 10.8180 s
+| CPU Time (user+system): 10.5000 s
+| Search Depth: 25
+
+--------------------------------
+
+| Size: 1000000
+| Iteration: 4
+| Memory Usage: 104000704 bytes | CPU Usage: 14.8 % 
+| Process Memory (RSS diff):    532480 bytes
+| Wall Clock Time: 10.5015 s
+| CPU Time (user+system): 10.2344 s
+| Search Depth: 39
+
