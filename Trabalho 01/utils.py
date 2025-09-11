@@ -3,7 +3,7 @@ import random as rd
 def generate_data(n):
     """
     Cria registros fictícios com diferentes volumes: n = {10.000, 50.000, 100.000, ...}
-    Cada registro contém, por exemplo: Matrícula (9 dígitos), Nome, Salário, Código do Setor
+    Cada registro contém, por exemplo: Matrícula (9 dígitos), Nome, Salário, Código do Setor, Tempo de Serviço
     
     @param n: int
     @return: list
@@ -14,6 +14,7 @@ def generate_data(n):
         name = f'Nome {i + 1}'
         salary = round(rd.uniform(1000, 10000), 2)
         code = f'{id:d}-{rd.randint(1, 1000)}'
-        data.append([id, name, salary, code])
+        los = f'{id:d}-{rd.randint(1, 35)}'
+        data.append([id, name, salary, code, los])
     return data
 
