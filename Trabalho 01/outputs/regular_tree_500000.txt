@@ -1,0 +1,27 @@
+--------------------------------
+
+| Size: 500000
+| Iteration: 0
+| Memory Usage:   9520 bytes | CPU Usage: 15.1 % 
+| Time: 4.7071 s 
+
+| Search Depth: 29
+
+--------------------------------
+
+| Size: 500000
+| Iteration: 1
+| Memory Usage:   5936 bytes | CPU Usage: 14.0 % 
+| Time: 4.6459 s 
+
+| Search Depth: 25
+
+--------------------------------
+
+| Size: 500000
+| Iteration: 2
+| Memory Usage:   9488 bytes | CPU Usage: 14.8 % 
+| Time: 4.6472 s 
+
+| Search Depth: 28
+

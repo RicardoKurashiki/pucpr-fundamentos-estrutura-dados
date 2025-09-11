@@ -2,34 +2,39 @@
 
 | Size: 100000
 | Iteration: 0
-| Memory Usage:   7760 bytes | CPU Usage: 19.2 % 
-| Time: 0.4084 s 
+| Memory Usage:   7760 bytes | CPU Usage: 14.0 % 
+| Time: 0.5233 s 
+
 
 --------------------------------
 
 | Size: 100000
 | Iteration: 1
-| Memory Usage:   7760 bytes | CPU Usage: 29.5 % 
-| Time: 0.4369 s 
+| Memory Usage:   7760 bytes | CPU Usage: 24.9 % 
+| Time: 0.6763 s 
+
 
 --------------------------------
 
 | Size: 100000
 | Iteration: 2
-| Memory Usage:   7760 bytes | CPU Usage: 25.9 % 
-| Time: 0.4525 s 
+| Memory Usage:   7760 bytes | CPU Usage: 16.8 % 
+| Time: 0.5100 s 
+
 
 --------------------------------
 
 | Size: 100000
 | Iteration: 3
-| Memory Usage:   7760 bytes | CPU Usage: 16.4 % 
-| Time: 0.4130 s 
+| Memory Usage:   7760 bytes | CPU Usage: 19.6 % 
+| Time: 0.5123 s 
+
 
 --------------------------------
 
 | Size: 100000
 | Iteration: 4
-| Memory Usage:   7760 bytes | CPU Usage: 16.5 % 
-| Time: 0.4276 s 
+| Memory Usage:   7760 bytes | CPU Usage: 17.1 % 
+| Time: 0.5167 s 
+
 

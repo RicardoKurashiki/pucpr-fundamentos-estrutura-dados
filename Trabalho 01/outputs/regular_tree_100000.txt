@@ -1,0 +1,45 @@
+--------------------------------
+
+| Size: 100000
+| Iteration: 0
+| Memory Usage:   3472 bytes | CPU Usage: 15.9 % 
+| Time: 0.6906 s 
+
+| Search Depth: 23
+
+--------------------------------
+
+| Size: 100000
+| Iteration: 1
+| Memory Usage:   4688 bytes | CPU Usage: 13.2 % 
+| Time: 0.6646 s 
+
+| Search Depth: 24
+
+--------------------------------
+
+| Size: 100000
+| Iteration: 2
+| Memory Usage:   3408 bytes | CPU Usage: 19.4 % 
+| Time: 0.7099 s 
+
+| Search Depth: 16
+
+--------------------------------
+
+| Size: 100000
+| Iteration: 3
+| Memory Usage:   5296 bytes | CPU Usage: 24.7 % 
+| Time: 0.7720 s 
+
+| Search Depth: 19
+
+--------------------------------
+
+| Size: 100000
+| Iteration: 4
+| Memory Usage:   5520 bytes | CPU Usage: 13.9 % 
+| Time: 0.6911 s 
+
+| Search Depth: 23
+

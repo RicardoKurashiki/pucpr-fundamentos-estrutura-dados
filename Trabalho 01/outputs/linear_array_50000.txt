@@ -1,0 +1,40 @@
+--------------------------------
+
+| Size: 50000
+| Iteration: 0
+| Memory Usage:    624 bytes | CPU Usage: 13.6 % 
+| Time: 0.0000 s 
+
+
+--------------------------------
+
+| Size: 50000
+| Iteration: 1
+| Memory Usage:    624 bytes | CPU Usage: 9.1 % 
+| Time: 0.0000 s 
+
+
+--------------------------------
+
+| Size: 50000
+| Iteration: 2
+| Memory Usage:    624 bytes | CPU Usage: 3.4 % 
+| Time: 0.0000 s 
+
+
+--------------------------------
+
+| Size: 50000
+| Iteration: 3
+| Memory Usage:    624 bytes | CPU Usage: 22.2 % 
+| Time: 0.0000 s 
+
+
+--------------------------------
+
+| Size: 50000
+| Iteration: 4
+| Memory Usage:    624 bytes | CPU Usage: 15.0 % 
+| Time: 0.0000 s 
+
+

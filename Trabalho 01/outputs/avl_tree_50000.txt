@@ -2,34 +2,44 @@
 
 | Size: 50000
 | Iteration: 0
-| Memory Usage:   9200 bytes | CPU Usage: 16.7 % 
-| Time: 0.8527 s 
+| Memory Usage:   2096 bytes | CPU Usage: 16.3 % 
+| Time: 0.3511 s 
+
+| Search Depth: 16
 
 --------------------------------
 
 | Size: 50000
 | Iteration: 1
-| Memory Usage:   6608 bytes | CPU Usage: 13.1 % 
-| Time: 0.7433 s 
+| Memory Usage:   2000 bytes | CPU Usage: 19.4 % 
+| Time: 0.3373 s 
+
+| Search Depth: 16
 
 --------------------------------
 
 | Size: 50000
 | Iteration: 2
-| Memory Usage:   6576 bytes | CPU Usage: 13.2 % 
-| Time: 0.7384 s 
+| Memory Usage:   2032 bytes | CPU Usage: 23.5 % 
+| Time: 0.3541 s 
+
+| Search Depth: 16
 
 --------------------------------
 
 | Size: 50000
 | Iteration: 3
-| Memory Usage:   9072 bytes | CPU Usage: 13.9 % 
-| Time: 0.8639 s 
+| Memory Usage:   2000 bytes | CPU Usage: 28.1 % 
+| Time: 0.3420 s 
+
+| Search Depth: 14
 
 --------------------------------
 
 | Size: 50000
 | Iteration: 4
-| Memory Usage:   6576 bytes | CPU Usage: 13.1 % 
-| Time: 0.7452 s 
+| Memory Usage:   3248 bytes | CPU Usage: 27.4 % 
+| Time: 0.3686 s 
+
+| Search Depth: 17
 

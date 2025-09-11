@@ -1,0 +1,32 @@
+--------------------------------
+
+| Size: 500000
+| Iteration: 0
+| Memory Usage:    624 bytes | CPU Usage: 100.0 % 
+| Time: 0.0000 s 
+
+
+--------------------------------
+
+| Size: 500000
+| Iteration: 1
+| Memory Usage:    624 bytes | CPU Usage: 2.7 % 
+| Time: 0.0000 s 
+
+
+--------------------------------
+
+| Size: 500000
+| Iteration: 2
+| Memory Usage:    624 bytes | CPU Usage: 5.8 % 
+| Time: 0.0000 s 
+
+
+--------------------------------
+
+| Size: 500000
+| Iteration: 3
+| Memory Usage:    624 bytes | CPU Usage: 14.6 % 
+| Time: 0.0000 s 
+
+

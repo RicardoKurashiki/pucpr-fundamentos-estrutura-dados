@@ -15,7 +15,8 @@ def compute_algorithms(data, func, name, iteration, size):
     tracemalloc.start()
 
     start = time()
-    func(data)
+    # A função de teste retorna um possível dicionário de métricas específicas
+    specific_metrics = func(data)
     end = time()
 
     memory_usage = tracemalloc.get_tracemalloc_memory()
@@ -34,6 +35,11 @@ def compute_algorithms(data, func, name, iteration, size):
             f"| Time: {end - start:.4f} s \n"
             "\n"
         )
+        # Loop genérico para salvar as eventuais métricas retornadas
+        if specific_metrics is not None:
+            for metric_name, metric_value in specific_metrics.items():
+                f.writelines(f"| {metric_name}: {metric_value}\n")
+        f.writelines("\n")
 
 def linear_array_test(data):
     pass
@@ -42,18 +48,28 @@ def tree_test(data):
     tree = AVLTree(key=lambda registro: registro[0])
     for item in data:
         tree.insert(item)
-    tree.search(data[len(data) // 2][0])
+    # Capturamos os dados (ignoramos) e o dicionário de métricas
+    _, metrics = tree.search(data[len(data) // 2][0])
+    return metrics # Retornamos o dicionário
 
 def unbaltree_test(data):
     tree = UnBalTree(key=lambda registro: registro[0])
     for item in data:
         tree.insert(item)
-    tree.search(data[len(data) // 2][0])
+    _, metrics = tree.search(data[len(data) // 2][0])
+    return metrics
 
 def hash_test(data):
     hash_table = HashTable(len(data))
     for item in data:
         hash_table.insert(item[0], item[1:])
+
+    # EXEMPLO DE EXTENSIBILIDADE:
+    # Suponha que o search da HashTable retorne o número de colisões encontradas
+    # _, metrics = hash_table.search(data[len(data) // 2][0])
+    # return metrics # -> retornaria algo como {'Collisions': 1}
+
+    # Por enquanto, não faremos isso
     hash_table.search(data[len(data) // 2][0])
 
 def main():
