@@ -7,6 +7,7 @@ import tracemalloc
 
 from hashtable import HashTable
 from avltree import AVLTree
+from unbaltree import UnBalTree
 
 def compute_algorithms(data, func, name, iteration, size):
     p.cpu_percent()
@@ -43,6 +44,12 @@ def tree_test(data):
         tree.insert(item)
     tree.search(data[len(data) // 2][0])
 
+def unbaltree_test(data):
+    tree = UnBalTree(key=lambda registro: registro[0])
+    for item in data:
+        tree.insert(item)
+    tree.search(data[len(data) // 2][0])
+
 def hash_test(data):
     hash_table = HashTable(len(data))
     for item in data:
@@ -56,6 +63,7 @@ def main():
         for i in range(iterations):
             data = generate_data(size)
             compute_algorithms(data, linear_array_test, "linear_array", i, size)
+            compute_algorithms(data, unbaltree_test, "regular_tree", i, size)
             compute_algorithms(data, tree_test, "avl_tree", i, size)
             compute_algorithms(data, hash_test, "hash_table", i, size)
 
