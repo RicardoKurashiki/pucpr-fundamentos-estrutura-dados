@@ -5,14 +5,12 @@ import random
 import tracemalloc
 import psutil as p
 
-# INSERT ALGORITHMS
+# INSERT ALGORITHM
 
-def insert_value(arr, value):
-    arr = np.array(arr)
-    new_arr = np.append(arr, value)
+def insert_array(data):
+    arr_of_ids = [item[0] for item in data]
 
-    return new_arr
-
+    return arr_of_ids
 
 # SEARCH ALGORITHMS
 
@@ -146,133 +144,3 @@ def quick_sort(arr, lo = None, hi = None):
 
 
     return arr, swap_count, shift_count, step_count
-
-# COMPUTING METRICS
-
-def compute_sorting_algorithms(arr, func):
-    p.cpu_percent()                         # Esta chamada funciona como um reset para a próxima medição de consumo de CPU, já que cada chamada de cpu_percent traz o consumo desde a última chamada
-    time.sleep(0.05)                        # Delay necessário para que não ocorram medições muito rápidas do consumo de CPU
-
-    tracemalloc.start()                     # Inicia a coleta de memória alocada
-        
-    start = time.time()
-    ordered_arr, swap_count, shift_count, step_count = func(arr.copy())
-    end = time.time()
-             
-    memory_usage = tracemalloc.get_tracemalloc_memory() # Coleta de memória
-    tracemalloc.stop()                      # Para a coleta de memória alocada
-
-    p_cpu_usage = p.cpu_percent()           # Coleta o consumo de CPU desde a última chamada
-
-    print(
-        f"Swaps: {swap_count:6d} | Shifts: {shift_count:6d} "
-        f"| Steps: {step_count:6d} | MemMoves: {swap_count * 2 + shift_count:3d} "
-        f"| Memory Usage: {memory_usage:6d} bytes | CPU Usage: {p_cpu_usage} % "
-        f"| Time: {end - start:.4f} s "
-        f"| {arr[:5]} -> {ordered_arr[:5]}"
-    )
-
-    return ordered_arr
-
-def compute_binary_search(arr, target):
-    p.cpu_percent()                        
-    time.sleep(0.05)                        
-
-    tracemalloc.start()                     
-    start = time.time()
-    _, step_count = binary_search(arr, target)
-    end = time.time()
-
-    memory_usage = tracemalloc.get_tracemalloc_memory() 
-    tracemalloc.stop()                     
-            
-    p_cpu_usage = p.cpu_percent()     
-
-    print(
-        f"Binary Search: "
-        f"Target: {target} | Steps: {step_count} "
-        f"| Memory Usage: {memory_usage:6d} bytes | CPU Usage: {p_cpu_usage} % "
-        f"| Time: {end - start:.4f} s"
-    )      
-
-def compute_sequential_search(arr, target):
-    p.cpu_percent()                        
-    time.sleep(0.05)                        
-
-    tracemalloc.start()                     
-    start = time.time()
-    _, step_count = sequential_search(arr, target)
-    end = time.time()
-
-    memory_usage = tracemalloc.get_tracemalloc_memory() 
-    tracemalloc.stop()                     
-            
-    p_cpu_usage = p.cpu_percent()     
-
-    print(
-        f"Sequential Search: "
-        f"Target: {target} | Steps: {step_count} "
-        f"| Memory Usage: {memory_usage:6d} bytes | CPU Usage: {p_cpu_usage} % "
-        f"| Time: {end - start:.4f} s"
-    ) 
-
-def compute_insert_value(arr, value):
-    p.cpu_percent()                        
-    time.sleep(0.05)                        
-
-    tracemalloc.start()                     
-    start = time.time()
-    new_arr = insert_value(arr, value)
-    end = time.time()
-
-    memory_usage = tracemalloc.get_tracemalloc_memory() 
-    tracemalloc.stop()                     
-            
-    p_cpu_usage = p.cpu_percent()     
-
-    print(
-        f"Insert Value: {value} "
-        f"| Memory Usage: {memory_usage:6d} bytes | CPU Usage: {p_cpu_usage} % "
-        f"| Time: {end - start:.4f} s"
-    )
-    return new_arr
-
-def main():
-    sizes = [100, 200, 300, 400, 500]
-    algorithms = [
-        ('Bubble Sort', bubble_sort),
-        ('Insertion Sort', insertion_sort),
-        ('Selection Sort', selection_sort),
-        ('Quick Sort', quick_sort)
-    ]
-    value_to_insert_and_search = 88
-
-    results = {
-        "times": {name: [] for name, _ in algorithms},
-        "steps": {name: [] for name, _ in algorithms},
-        "swaps": {name: [] for name, _ in algorithms},
-        "shifts": {name: [] for name, _ in algorithms},
-        "mem_moves": {name: [] for name, _ in algorithms},
-        "memory_usage": {name: [] for name, _ in algorithms},
-        "cpu_usage": {name: [] for name, _ in algorithms}
-    }
-
-    base_arrays = {size: np.random.randint(0, 10000, size) for size in sizes}
-
-    for name, func in algorithms:
-        print(f"\n----------------------------------------------------------------------------------------------------------------------")
-        for size in sizes:
-            print(f"\nArray of size: {size + 1}")
-
-            print(f"Inserting {value_to_insert_and_search} in array...")
-            arr = compute_insert_value(base_arrays[size], value_to_insert_and_search)
-
-            print(f"Ordering array with {name}...")
-            ordered_arr = compute_sorting_algorithms(arr, func)
-
-            target = value_to_insert_and_search
-            compute_sequential_search(arr, target)
-            compute_binary_search(ordered_arr, target)
-
-if __name__ == "__main__":
-    main()

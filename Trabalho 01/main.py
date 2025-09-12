@@ -6,6 +6,7 @@ import os
 import csv
 from tqdm import tqdm
 import tracemalloc
+from arrays_lineares import insert_array, bubble_sort, insertion_sort, selection_sort, quick_sort, sequential_search, binary_search
 
 from hashtable import HashTable
 from avltree import AVLTree
@@ -93,7 +94,112 @@ def compute_and_log_metrics(metrics, name, iteration, size):
 
 
 def linear_array_test(data):
-    pass
+    metrics = {} # dicionário para coleta das métricas
+    # Objeto Process que representa o nosso script atual
+    process = p.Process(os.getpid())
+
+    # FASE 1: INSERÇÃO
+    tracemalloc.start()
+    process.cpu_percent()   # Esta chamada funciona como um reset para a próxima medição de consumo de CPU, já que cada chamada de cpu_percent traz o consumo desde a última chamada
+    # Mede o tempo de CPU inicial
+    cpu_before_insert = process.cpu_times()
+
+    # Cria novo array utilizando apenas os ids de cada item
+    array_of_ids = insert_array(data)
+
+    cpu_after_insert = process.cpu_times()
+    cpu_usage_inset = process.cpu_percent()   # Coleta o consumo de CPU desde a última chamada
+    _, peak_mem = tracemalloc.get_traced_memory()
+    tracemalloc.stop()  # Paramos o tracemalloc aqui, pois a estrutura já está criada.
+
+    # Coleta de métricas da Fase 1
+    metrics['Memory Usage (Peak Bytes)'] = peak_mem
+    metrics['Insertion CPU Usage (%)'] = cpu_usage_inset
+    metrics['Insertion CPU Time (s)'] = (cpu_after_insert.user - cpu_before_insert.user) + \
+                                        (cpu_after_insert.system - cpu_before_insert.system)
+    
+
+    # --- FASE 2: ORDENAÇÃO ---
+    sort_algorithms = [
+        ('Bubble Sort', bubble_sort),
+        ('Insertion Sort', insertion_sort),
+        ('Selection Sort', selection_sort),
+        ('Quick Sort', quick_sort)
+    ]
+
+    for name, func in sort_algorithms:
+        tracemalloc.start()
+        process.cpu_percent()   # Esta chamada funciona como um reset para a próxima medição de consumo de CPU, já que cada chamada de cpu_percent traz o consumo desde a última chamada
+        cpu_before_sorting = process.cpu_times()
+
+        ordered_array_of_ids, swap_count, shift_count, step_count = func(array_of_ids.copy())
+
+        cpu_after_sorting = process.cpu_times()
+        cpu_usage_sorting = process.cpu_percent()   # Coleta o consumo de CPU desde a última chamada
+        memoryusage_sorting, peak_mem = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+
+        # Coleta de métricas da Fase 2
+        metrics[f"{name} Memory Usage (Bytes)"] = memoryusage_sorting
+        metrics[f"{name} Memory Moves"] = (swap_count * 2 + shift_count)
+        metrics[f"{name} Steps"] = (step_count)
+        metrics[f"{name} CPU Usage (%)"] = cpu_usage_sorting
+        metrics[f"{name} Sort CPU Time (s)"] = (cpu_after_sorting.user - cpu_before_sorting.user) + \
+                                        (cpu_after_sorting.system - cpu_before_sorting.system)
+    
+    # O array ordenado de ids é igual para todos os algoritmos de ordenação, por isso a atribuição feita fora do loop
+    ordered_array = ordered_array_of_ids
+
+    # --- FASE 3: BUSCA POR AMOSTRAGEM ---
+    # Definimos o tamanho da amostra como 1% do total de dados.
+    # Usamos max(1, ...) para garantir que, mesmo para N muito pequeno, testamos pelo menos 1 elemento.
+    sample_percent = 0.01
+    sample_size = max(1, int(len(data)*sample_percent))
+    search_sample = rd.sample(data, sample_size)
+    
+    # Busca Sequencial
+    tracemalloc.start()
+    process.cpu_percent()
+    cpu_before_search = process.cpu_times()
+
+    for item_to_search in search_sample:
+        id_to_search = item_to_search[0]
+        _, seq_search_steps = sequential_search(array_of_ids, id_to_search)
+        
+
+    cpu_after_search = process.cpu_times()
+    cpu_usage_search = process.cpu_percent()   # Coleta o consumo de CPU desde a última chamada
+    memoryusage_search, peak_mem = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+
+    metrics[f"Sequential Search Memory Usage (Bytes)"] = memoryusage_search
+    metrics[f"Sequential Search Steps"] = (seq_search_steps)
+    metrics[f"Sequential Search CPU Usage (%)"] = cpu_usage_search
+    metrics[f"Sequential Search Search CPU Time (s)"] = (cpu_after_search.user - cpu_before_search.user) + \
+                                        (cpu_after_search.system - cpu_before_search.system)
+    
+    # Busca Binária
+    tracemalloc.start()
+    process.cpu_percent()
+    cpu_before_search = process.cpu_times()
+
+    for item_to_search in search_sample:
+        id_to_search = item_to_search[0]
+        _, bin_search_steps = binary_search(array_of_ids, id_to_search)
+        
+
+    cpu_after_search = process.cpu_times()
+    cpu_usage_search = process.cpu_percent()   # Coleta o consumo de CPU desde a última chamada
+    memoryusage_search, peak_mem = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+
+    metrics[f"Binary Search Memory Usage (Bytes)"] = memoryusage_search
+    metrics[f"Binary Search Steps"] = (bin_search_steps)
+    metrics[f"Binary Search CPU Usage (%)"] = cpu_usage_search
+    metrics[f"Binary Search Search CPU Time (s)"] = (cpu_after_search.user - cpu_before_search.user) + \
+                                        (cpu_after_search.system - cpu_before_search.system)
+
+    return metrics
 
 def test_avltree_lifecycle(data):
     metrics = {} # dicionário para coleta das métricas
@@ -254,8 +360,9 @@ def main():
         data = generate_data(size)
         for i in range(iterations):
             # data = generate_data(size) # para o caso de não ser fixada a semente aleatória
-            compute_algorithms(data, linear_array_test, "linear_array", i, size)
-            compute_algorithms(data, hash_test, "hash_table", i, size)
+            array_metrics = linear_array_test(data)
+            compute_and_log_metrics(array_metrics, "linear_array", i, size)
+            #compute_algorithms(data, hash_test, "hash_table", i, size)
 
             unbaltree_metrics = test_unbaltree_lifecycle(data)
             compute_and_log_metrics(unbaltree_metrics, "regular_tree", i, size)
