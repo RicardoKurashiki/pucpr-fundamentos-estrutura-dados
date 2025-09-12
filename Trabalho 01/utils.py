@@ -19,3 +19,10 @@ def generate_data(n):
         data.append([id, name, salary, code, los])
     return data
 
+def sequential_search(arr, target):
+    steps = 0
+    for i, value in enumerate(arr):
+        steps += 1
+        if value[0] == target:
+            return i, steps
+    return -1, steps
