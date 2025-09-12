@@ -116,7 +116,7 @@ def linear_array_test(data):
     memoryusage_search, peak_mem = tracemalloc.get_traced_memory()
     tracemalloc.stop()
 
-    metrics['Memory Usage (Peak Bytes)'] = peak_mem
+    metrics['Sequential Search Memory Usage Peak (Bytes)'] = peak_mem
     metrics['Sequential Search Memory Usage (Bytes)'] = memoryusage_search
     metrics['Sequential Search Steps'] = (seq_search_steps)
     metrics['Sequential Search Search CPU Time (s)'] = (cpu_after_search.user - cpu_before_search.user) + \
@@ -272,8 +272,7 @@ def hash_test(data):
     hash_table.search(data[len(data) // 2][0])
 
 def main():
-    #sizes = [50_000, 100_000, 500_000, 1_000_000]
-    sizes = [10_000, 50_000]
+    sizes = [50_000, 100_000, 500_000, 1_000_000]
     rd.seed(42)
     iterations = 5
     for size in tqdm(sizes):
