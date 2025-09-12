@@ -8,13 +8,14 @@ def generate_data(n):
     @param n: int
     @return: list
     """
+    rd.seed(42)
     data = []
     for i in range(n):
         id = rd.randint(100000000, 999999999)
         name = f'Nome {i + 1}'
         salary = round(rd.uniform(1000, 10000), 2)
-        code = f'{id:d}-{rd.randint(1, 1000)}'
-        los = f'{id:d}-{rd.randint(1, 35)}'
+        code = f'{rd.randint(1, 1000)}'
+        los = f'{rd.randint(1, 35)}'
         data.append([id, name, salary, code, los])
     return data
 
