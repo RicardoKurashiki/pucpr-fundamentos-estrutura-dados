@@ -1,14 +1,14 @@
-from utils import generate_data, sequential_search
-from time import time, sleep
-import psutil as p
-import random as rd
-import os
 import csv
+import os
+import random as rd
 import tracemalloc
 
-from hashtable import HashTable
+import psutil as p
 from avltree import AVLTree
+from hashtable import HashTable
 from unbaltree import UnBalTree
+from utils import generate_data, sequential_search
+
 
 def compute_and_log_metrics(metrics, name, iteration, size):
     """
