@@ -1,17 +1,14 @@
 import argparse
 import csv
-import json
 import os
 import random as rd
 import tracemalloc
 
 import matplotlib.pyplot as plt
-import numpy as np
 import psutil as p
 from avltree import AVLTree
-from constants import GLOBAL_METRICS
+from constants import METRICS
 from hashtable import HashTable
-from scipy.interpolate import interp1d
 from unbaltree import UnBalTree
 from utils import generate_data, get_dict, sequential_search
 
@@ -248,6 +245,7 @@ def plot_data_comparison(
     data: dict,
     sizes: list = [50_000, 100_000, 500_000, 1_000_000],
     algorithms: list = ["linear_array", "avl_tree", "regular_tree"],
+    output_path: str = "./outputs/charts/",
 ):
     def get_progression(algorithm: str, metric: str):
         Y = []
@@ -257,16 +255,13 @@ def plot_data_comparison(
         return Y
 
     plot_data = {}
-    for metric in GLOBAL_METRICS:
-        plot_data[metric] = GLOBAL_METRICS[metric].copy()
+    for metric in METRICS:
+        plot_data[metric] = METRICS[metric].copy()
         for algorithm in algorithms:
             plot_data[metric][algorithm] = get_progression(algorithm, metric)
 
-    # Debug: imprimir dados processados
-    print(json.dumps(plot_data, indent=4))
-
     # Plotar os dados como comparação entre algoritmos
-    for metric in GLOBAL_METRICS:
+    for metric in METRICS:
         plt.figure(figsize=(10, 6))
 
         # Converter tamanhos para formato mais legível (em milhares)
@@ -284,66 +279,19 @@ def plot_data_comparison(
         for algo_key, algo_label, color in algorithms:
             if algo_key in plot_data[metric] and len(plot_data[metric][algo_key]) > 0:
                 y_values = plot_data[metric][algo_key]
-
-                # Verificar se temos dados suficientes para interpolação
-                if len(y_values) >= 2 and len(x_sizes) == len(y_values):
-                    # Criar pontos intermediários para interpolação suave
-                    x_smooth = np.linspace(min(x_sizes), max(x_sizes), 300)
-
-                    # Usar interpolação cúbica para curvas suaves
-                    try:
-                        f_interp = interp1d(
-                            x_sizes,
-                            y_values,
-                            kind="cubic",
-                            bounds_error=False,
-                            fill_value="extrapolate",
-                        )
-                        y_smooth = f_interp(x_smooth)
-
-                        # Plotar curva suave
-                        plt.plot(
-                            x_smooth,
-                            y_smooth,
-                            color=color,
-                            linewidth=2,
-                            label=algo_label,
-                            alpha=0.7,
-                        )
-
-                        # Plotar pontos originais para referência
-                        plt.scatter(
-                            x_sizes, y_values, color=color, s=50, zorder=5, alpha=0.7
-                        )
-
-                    except Exception as e:
-                        # Se interpolação falhar, usar plot linear simples
-                        print(f"Interpolação falhou para {algo_label}: {e}")
-                        plt.plot(
-                            x_sizes,
-                            y_values,
-                            "o-",
-                            color=color,
-                            linewidth=2,
-                            label=algo_label,
-                            markersize=6,
-                        )
-                else:
-                    # Se não há dados suficientes, plot simples
-                    plt.plot(
-                        x_sizes,
-                        y_values,
-                        "o-",
-                        color=color,
-                        linewidth=2,
-                        label=algo_label,
-                        markersize=6,
-                    )
+                plt.plot(
+                    x_sizes,
+                    y_values,
+                    color=color,
+                    linewidth=2,
+                    label=algo_label,
+                    alpha=0.7,
+                )
 
         # Configurações do gráfico
-        plt.title(GLOBAL_METRICS[metric]["title"], fontsize=14, fontweight="bold")
+        plt.title(METRICS[metric]["title"], fontsize=14, fontweight="bold")
         plt.xlabel("Tamanho do Conjunto de Dados (x1000)", fontsize=12)
-        ylabel = GLOBAL_METRICS[metric]["ylabel"]
+        ylabel = METRICS[metric]["ylabel"]
         plt.ylabel(ylabel, fontsize=12)
         plt.xticks(x_sizes, [f"{int(x)}k" for x in x_sizes])
         plt.grid(True, alpha=0.3)
@@ -351,8 +299,9 @@ def plot_data_comparison(
         plt.tight_layout()
 
         # Salvar gráfico
-        os.makedirs("./outputs/charts/", exist_ok=True)
-        fig.savefig(f"./outputs/charts/{metric}.png")
+        os.makedirs(output_path, exist_ok=True)
+        fig.savefig(f"{output_path}/{metric}.png")
+        plt.close(fig)
 
 
 def main():
@@ -378,8 +327,36 @@ def main():
                 compute_and_log_metrics(avl_metrics, "avl_tree", i, size)
 
     dict = get_dict(sizes)
-    print(json.dumps(dict, indent=4))
-    plot_data_comparison(dict, sizes)
+    plot_data_comparison(
+        dict,
+        sizes=sizes,
+        algorithms=["linear_array", "avl_tree", "regular_tree"],
+        output_path="./outputs/charts/comparison/all/",
+    )
+    plot_data_comparison(
+        dict,
+        sizes=sizes,
+        algorithms=["avl_tree", "regular_tree"],
+        output_path="./outputs/charts/comparison/trees/",
+    )
+    plot_data_comparison(
+        dict,
+        sizes=sizes,
+        algorithms=["avl_tree"],
+        output_path="./outputs/charts/avl_tree/",
+    )
+    plot_data_comparison(
+        dict,
+        sizes=sizes,
+        algorithms=["regular_tree"],
+        output_path="./outputs/charts/regular_tree/",
+    )
+    plot_data_comparison(
+        dict,
+        sizes=sizes,
+        algorithms=["linear_array"],
+        output_path="./outputs/charts/linear_array/",
+    )
 
 
 if __name__ == "__main__":
