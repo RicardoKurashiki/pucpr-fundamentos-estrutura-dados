@@ -1,4 +1,8 @@
+import os
 import random as rd
+
+import pandas as pd
+
 
 def generate_data(n):
     """
@@ -26,3 +30,27 @@ def sequential_search(arr, target):
         if value[0] == target:
             return i, steps
     return -1, steps
+
+
+def get_dict(sizes=[50_000, 100_000, 500_000, 1_000_000]) -> dict:
+    """
+    Lê os arquivos de saída e retorna um dicionário com os dados já agrupados por tamanho
+    @param sizes: list
+    @return: dict
+    """
+    output_path = "./outputs/"
+    result = {}
+    for fileName in os.listdir(output_path):
+        if fileName.endswith(".csv"):
+            df = pd.read_csv(os.path.join(output_path, fileName))
+            name = fileName.replace(".csv", "")
+            columns = df.columns.drop(labels=["Iteration"])
+            result[name] = []
+            for size in sizes:
+                # Agrupa por size todas as iterações
+                df_size = df[df["Size"] == size]
+                data = {}
+                for column in columns:
+                    data[column] = df_size[column].mean()
+                result[name].append(data)
+    return result

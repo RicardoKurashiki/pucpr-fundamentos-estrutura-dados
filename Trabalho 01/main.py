@@ -1,13 +1,23 @@
+import argparse
 import csv
+import json
 import os
 import random as rd
 import tracemalloc
 
+import matplotlib.pyplot as plt
+import numpy as np
 import psutil as p
 from avltree import AVLTree
+from constants import GLOBAL_METRICS
 from hashtable import HashTable
+from scipy.interpolate import interp1d
 from unbaltree import UnBalTree
-from utils import generate_data, sequential_search
+from utils import generate_data, get_dict, sequential_search
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--skip", action="store_true", default=True)
+args = parser.parse_args()
 
 
 def compute_and_log_metrics(metrics, name, iteration, size):
@@ -23,9 +33,9 @@ def compute_and_log_metrics(metrics, name, iteration, size):
     # Prepara a linha de dados a ser escrita
     # Começa com os parâmetros do teste e depois adiciona todas as métricas coletadas
     row_data = {
-        'Size': size,
-        'Iteration': iteration,
-        **metrics  # Desempacota o dicionário de métricas na linha
+        "Size": size,
+        "Iteration": iteration,
+        **metrics,  # Desempacota o dicionário de métricas na linha
     }
 
     # Define o cabeçalho a partir das chaves do nosso dicionário de dados
@@ -35,7 +45,7 @@ def compute_and_log_metrics(metrics, name, iteration, size):
     file_exists = os.path.exists(filename)
     # Abre o arquivo em modo 'append' (a) e escreve a nova linha
     # newline='' é importante para evitar linhas em branco no CSV
-    with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
+    with open(filename, "a", newline="", encoding="utf-8") as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=header)
 
         # Se o arquivo não existe, escreve o cabeçalho
@@ -47,17 +57,17 @@ def compute_and_log_metrics(metrics, name, iteration, size):
 
 
 def linear_array_test(data):
-    metrics = {} # dicionário para coleta das métricas
+    metrics = {}  # dicionário para coleta das métricas
     # Objeto Process que representa o nosso script atual
     process = p.Process(os.getpid())
-    
+
     # --- BUSCA POR AMOSTRAGEM ---
     # Definimos o tamanho da amostra como 1% do total de dados.
     # Usamos max(1, ...) para garantir que, mesmo para N muito pequeno, testamos pelo menos 1 elemento.
     sample_percent = 0.01
-    sample_size = max(1, int(len(data)*sample_percent))
+    sample_size = max(1, int(len(data) * sample_percent))
     search_sample = rd.sample(data, sample_size)
-    
+
     # Busca Sequencial
     tracemalloc.start()
     cpu_before_search = process.cpu_times()
@@ -70,19 +80,20 @@ def linear_array_test(data):
     memoryusage_search, peak_mem = tracemalloc.get_traced_memory()
     tracemalloc.stop()
 
-    metrics['Sequential Search Memory Usage Peak (Bytes)'] = peak_mem
-    metrics['Sequential Search Memory Usage (Bytes)'] = memoryusage_search
-    metrics['Sequential Search Steps'] = (seq_search_steps)
-    metrics['Sequential Search Search CPU Time (s)'] = (cpu_after_search.user - cpu_before_search.user) + \
-                                        (cpu_after_search.system - cpu_before_search.system)
+    metrics["Memory Usage (Peak Bytes)"] = peak_mem
+    metrics["Memory Usage (Bytes)"] = memoryusage_search
+    metrics["Steps"] = seq_search_steps
+    metrics["Search CPU Time (s)"] = (
+        cpu_after_search.user - cpu_before_search.user
+    ) + (cpu_after_search.system - cpu_before_search.system)
 
     return metrics
 
+
 def test_avltree_lifecycle(data):
-    metrics = {} # dicionário para coleta das métricas
+    metrics = {}  # dicionário para coleta das métricas
     # Objeto Process que representa o nosso script atual
     process = p.Process(os.getpid())
-
 
     # FASE 1: INSERÇÃO
     tracemalloc.start()
@@ -98,12 +109,13 @@ def test_avltree_lifecycle(data):
     tracemalloc.stop()  # Paramos o tracemalloc aqui, pois a estrutura já está criada.
 
     # Coleta de métricas da Fase 1
-    metrics['Memory Usage (Peak Bytes)'] = peak_mem
-    metrics['Insertion CPU Time (s)'] = (cpu_after_insert.user - cpu_before_insert.user) + \
-                                        (cpu_after_insert.system - cpu_before_insert.system)
-    metrics['Rotation Events'] = tree.rotation_count
+    metrics["Memory Usage (Peak Bytes)"] = peak_mem
+    metrics["Insertion CPU Time (s)"] = (
+        cpu_after_insert.user - cpu_before_insert.user
+    ) + (cpu_after_insert.system - cpu_before_insert.system)
+    metrics["Rotation Events"] = tree.rotation_count
     if tree.root:
-        metrics['Tree Height'] = tree.root.height
+        metrics["Tree Height"] = tree.root.height
 
     # --- FASE 2: BUSCA POR AMOSTRAGEM ---
     cpu_before_search = process.cpu_times()
@@ -113,31 +125,32 @@ def test_avltree_lifecycle(data):
     # Definimos o tamanho da amostra como 1% do total de dados.
     # Usamos max(1, ...) para garantir que, mesmo para N muito pequeno, testamos pelo menos 1 elemento.
     sample_percent = 0.01
-    sample_size = max(1, int(len(data)*sample_percent))
+    sample_size = max(1, int(len(data) * sample_percent))
 
     search_sample = rd.sample(data, sample_size)
 
     for item_to_search in search_sample:
         key_to_search = item_to_search[0]
         _, search_metrics = tree.search(key_to_search)
-        max_depth = max(max_depth, search_metrics['Search Depth'])
-        total_depth += search_metrics['Search Depth']
+        max_depth = max(max_depth, search_metrics["Search Depth"])
+        total_depth += search_metrics["Search Depth"]
 
     cpu_after_search = process.cpu_times()
 
     # Coleta de métricas da Fase 2
-    metrics['Search CPU Time (s)'] = (cpu_after_search.user - cpu_before_search.user) + \
-                                     (cpu_after_search.system - cpu_before_search.system)
-    metrics['Average Search Depth'] = total_depth / sample_size
-    metrics['Max Search Depth'] = max_depth
+    metrics["Search CPU Time (s)"] = (
+        cpu_after_search.user - cpu_before_search.user
+    ) + (cpu_after_search.system - cpu_before_search.system)
+    metrics["Average Search Depth"] = total_depth / sample_size
+    metrics["Max Search Depth"] = max_depth
 
     return metrics
 
+
 def test_unbaltree_lifecycle(data):
-    metrics = {} # dicionário para coleta das métricas
+    metrics = {}  # dicionário para coleta das métricas
     # Objeto Process que representa o nosso script atual
     process = p.Process(os.getpid())
-
 
     # FASE 1: INSERÇÃO
     tracemalloc.start()
@@ -153,11 +166,12 @@ def test_unbaltree_lifecycle(data):
     tracemalloc.stop()  # Paramos o tracemalloc aqui, pois a estrutura já está criada.
 
     # Coleta de métricas da Fase 1
-    metrics['Memory Usage (Peak Bytes)'] = peak_mem
-    metrics['Insertion CPU Time (s)'] = (cpu_after_insert.user - cpu_before_insert.user) + \
-                                        (cpu_after_insert.system - cpu_before_insert.system)
+    metrics["Memory Usage (Peak Bytes)"] = peak_mem
+    metrics["Insertion CPU Time (s)"] = (
+        cpu_after_insert.user - cpu_before_insert.user
+    ) + (cpu_after_insert.system - cpu_before_insert.system)
     if tree.root:
-        metrics['Tree Height'] = tree.root.height
+        metrics["Tree Height"] = tree.root.height
 
     # --- FASE 2: BUSCA POR AMOSTRAGEM ---
     cpu_before_search = process.cpu_times()
@@ -167,25 +181,27 @@ def test_unbaltree_lifecycle(data):
     # Definimos o tamanho da amostra como 1% do total de dados.
     # Usamos max(1, ...) para garantir que, mesmo para N muito pequeno, testamos pelo menos 1 elemento.
     sample_percent = 0.01
-    sample_size = max(1, int(len(data)*sample_percent))
+    sample_size = max(1, int(len(data) * sample_percent))
 
     search_sample = rd.sample(data, sample_size)
 
     for item_to_search in search_sample:
         key_to_search = item_to_search[0]
         _, search_metrics = tree.search(key_to_search)
-        max_depth = max(max_depth, search_metrics['Search Depth'])
-        total_depth += search_metrics['Search Depth']
+        max_depth = max(max_depth, search_metrics["Search Depth"])
+        total_depth += search_metrics["Search Depth"]
 
     cpu_after_search = process.cpu_times()
 
     # Coleta de métricas da Fase 2
-    metrics['Search CPU Time (s)'] = (cpu_after_search.user - cpu_before_search.user) + \
-                                     (cpu_after_search.system - cpu_before_search.system)
-    metrics['Average Search Depth'] = total_depth / sample_size
-    metrics['Max Search Depth'] = max_depth
+    metrics["Search CPU Time (s)"] = (
+        cpu_after_search.user - cpu_before_search.user
+    ) + (cpu_after_search.system - cpu_before_search.system)
+    metrics["Average Search Depth"] = total_depth / sample_size
+    metrics["Max Search Depth"] = max_depth
 
     return metrics
+
 
 def tree_test(data):
     tree = AVLTree(key=lambda registro: registro[0])
@@ -196,10 +212,11 @@ def tree_test(data):
 
     # Coleta a altura da árvore, bem como a contagem de rotações e adiciona ao dicionário
     if tree.root:
-        metrics['Tree Height'] = tree.root.height
-    metrics['Rotation Events'] = tree.rotation_count
+        metrics["Tree Height"] = tree.root.height
+    metrics["Rotation Events"] = tree.rotation_count
 
-    return metrics # Retornamos o dicionário
+    return metrics  # Retornamos o dicionário
+
 
 def unbaltree_test(data):
     tree = UnBalTree(key=lambda registro: registro[0])
@@ -209,8 +226,9 @@ def unbaltree_test(data):
 
     # Coleta a altura da árvore e adiciona ao dicionário
     if tree.root:
-        metrics['Tree Height'] = tree.root.height
+        metrics["Tree Height"] = tree.root.height
     return metrics
+
 
 def hash_test(data):
     hash_table = HashTable(len(data))
@@ -225,24 +243,143 @@ def hash_test(data):
     # Por enquanto, não faremos isso
     hash_table.search(data[len(data) // 2][0])
 
+
+def plot_data_comparison(
+    data: dict,
+    sizes: list = [50_000, 100_000, 500_000, 1_000_000],
+    algorithms: list = ["linear_array", "avl_tree", "regular_tree"],
+):
+    def get_progression(algorithm: str, metric: str):
+        Y = []
+        for size_result in data[algorithm]:
+            if metric in size_result:
+                Y.append(size_result[metric])
+        return Y
+
+    plot_data = {}
+    for metric in GLOBAL_METRICS:
+        plot_data[metric] = GLOBAL_METRICS[metric].copy()
+        for algorithm in algorithms:
+            plot_data[metric][algorithm] = get_progression(algorithm, metric)
+
+    # Debug: imprimir dados processados
+    print(json.dumps(plot_data, indent=4))
+
+    # Plotar os dados como comparação entre algoritmos
+    for metric in GLOBAL_METRICS:
+        plt.figure(figsize=(10, 6))
+
+        # Converter tamanhos para formato mais legível (em milhares)
+        x_sizes = [size / 1000 for size in sizes]  # Converter para milhares
+
+        # Para cada algoritmo, plotar com interpolação suave
+        algorithms = [
+            ("linear_array", "Array Linear", "blue"),
+            ("avl_tree", "Árvore Balanceada", "green"),
+            ("regular_tree", "Árvore Desbalanceada", "red"),
+        ]
+
+        fig = plt.figure(figsize=(10, 6))
+
+        for algo_key, algo_label, color in algorithms:
+            if algo_key in plot_data[metric] and len(plot_data[metric][algo_key]) > 0:
+                y_values = plot_data[metric][algo_key]
+
+                # Verificar se temos dados suficientes para interpolação
+                if len(y_values) >= 2 and len(x_sizes) == len(y_values):
+                    # Criar pontos intermediários para interpolação suave
+                    x_smooth = np.linspace(min(x_sizes), max(x_sizes), 300)
+
+                    # Usar interpolação cúbica para curvas suaves
+                    try:
+                        f_interp = interp1d(
+                            x_sizes,
+                            y_values,
+                            kind="cubic",
+                            bounds_error=False,
+                            fill_value="extrapolate",
+                        )
+                        y_smooth = f_interp(x_smooth)
+
+                        # Plotar curva suave
+                        plt.plot(
+                            x_smooth,
+                            y_smooth,
+                            color=color,
+                            linewidth=2,
+                            label=algo_label,
+                            alpha=0.7,
+                        )
+
+                        # Plotar pontos originais para referência
+                        plt.scatter(
+                            x_sizes, y_values, color=color, s=50, zorder=5, alpha=0.7
+                        )
+
+                    except Exception as e:
+                        # Se interpolação falhar, usar plot linear simples
+                        print(f"Interpolação falhou para {algo_label}: {e}")
+                        plt.plot(
+                            x_sizes,
+                            y_values,
+                            "o-",
+                            color=color,
+                            linewidth=2,
+                            label=algo_label,
+                            markersize=6,
+                        )
+                else:
+                    # Se não há dados suficientes, plot simples
+                    plt.plot(
+                        x_sizes,
+                        y_values,
+                        "o-",
+                        color=color,
+                        linewidth=2,
+                        label=algo_label,
+                        markersize=6,
+                    )
+
+        # Configurações do gráfico
+        plt.title(GLOBAL_METRICS[metric]["title"], fontsize=14, fontweight="bold")
+        plt.xlabel("Tamanho do Conjunto de Dados (x1000)", fontsize=12)
+        ylabel = GLOBAL_METRICS[metric]["ylabel"]
+        plt.ylabel(ylabel, fontsize=12)
+        plt.xticks(x_sizes, [f"{int(x)}k" for x in x_sizes])
+        plt.grid(True, alpha=0.3)
+        plt.legend(fontsize=10, loc="best")
+        plt.tight_layout()
+
+        # Salvar gráfico
+        os.makedirs("./outputs/charts/", exist_ok=True)
+        fig.savefig(f"./outputs/charts/{metric}.png")
+
+
 def main():
     rd.seed(42)
     sizes = [50_000, 100_000, 500_000, 1_000_000]
     iterations = 5
-    for size in sizes:
-        """ Cada conjunto de dados de tamanho N é gerado uma única vez pois fixamos a semente aleatória para garantir a
-         reprodutibilidade do experimento. Caso se deseje uma ideia da melhor performance para o "caso médio geral", poderia
-         ser removida a inicialização da semente aleatória, e a geração do conjunto de dado seria feita no loop interno
-         """
-        data = generate_data(size)
-        for i in range(iterations):
-            array_metrics = linear_array_test(data)
-            compute_and_log_metrics(array_metrics, "linear_array", i, size)
+    # Ricardo: Coloquei o skip como True para não alterar os resultados já gerados
+    skip = args.skip
+    if not skip:
+        for size in sizes:
+            """ Cada conjunto de dados de tamanho N é gerado uma única vez pois fixamos a semente aleatória para garantir a
+            reprodutibilidade do experimento. Caso se deseje uma ideia da melhor performance para o "caso médio geral", poderia
+            ser removida a inicialização da semente aleatória, e a geração do conjunto de dado seria feita no loop interno
+            """
+            data = generate_data(size)
+            for i in range(iterations):
+                array_metrics = linear_array_test(data)
+                compute_and_log_metrics(array_metrics, "linear_array", i, size)
 
-            unbaltree_metrics = test_unbaltree_lifecycle(data)
-            compute_and_log_metrics(unbaltree_metrics, "regular_tree", i, size)
-            avl_metrics = test_avltree_lifecycle(data)
-            compute_and_log_metrics(avl_metrics, "avl_tree", i, size)
+                unbaltree_metrics = test_unbaltree_lifecycle(data)
+                compute_and_log_metrics(unbaltree_metrics, "regular_tree", i, size)
+                avl_metrics = test_avltree_lifecycle(data)
+                compute_and_log_metrics(avl_metrics, "avl_tree", i, size)
+
+    dict = get_dict(sizes)
+    print(json.dumps(dict, indent=4))
+    plot_data_comparison(dict, sizes)
 
 
 if __name__ == "__main__":
