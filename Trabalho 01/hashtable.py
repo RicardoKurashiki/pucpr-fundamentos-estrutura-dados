@@ -17,10 +17,12 @@ class HashTable:
 
     def search(self, key):
         index = self.hash_function(key)
+        search_steps = 0
         for pair in self.table[index]:
+            search_steps += 1
             if pair[0] == key:
-                return pair[1]
-        return None
+                return pair[1], {'Search Steps': search_steps}
+        return None, {'Search Steps': search_steps}
 
     def display(self):
         for i, bucket in enumerate(self.table):

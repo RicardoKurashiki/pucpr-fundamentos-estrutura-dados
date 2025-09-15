@@ -204,6 +204,7 @@ def test_unbaltree_lifecycle(data):
 def hash_test(data):
     m = [100, 1000, 5000]
     for hash_size in m:
+        print(f"Inserting {len(data)} into {hash_size} Hash Table")
         metrics = {}  # dicionário para coleta das métricas
         # Objeto Process que representa o nosso script atual
         process = p.Process(os.getpid())
@@ -231,7 +232,7 @@ def hash_test(data):
         # --- FASE 2: BUSCA POR AMOSTRAGEM ---
         cpu_before_search = process.cpu_times()
 
-        total_depth = 0
+        total_search_steps = 0
         max_depth = 0
         # Definimos o tamanho da amostra como 1% do total de dados.
         # Usamos max(1, ...) para garantir que, mesmo para N muito pequeno, testamos pelo menos 1 elemento.
@@ -239,10 +240,12 @@ def hash_test(data):
         sample_size = max(1, int(len(data) * sample_percent))
 
         search_sample = rd.sample(data, sample_size)
-
+        search_iteration = 0
         for item_to_search in search_sample:
+            search_iteration += 1
             key_to_search = item_to_search[0]
             _, search_metrics = hash_table.search(key_to_search)
+            total_search_steps += search_metrics["Search Steps"]
 
         cpu_after_search = process.cpu_times()
 
@@ -250,6 +253,7 @@ def hash_test(data):
         metrics["Search CPU Time (s)"] = (
             cpu_after_search.user - cpu_before_search.user
         ) + (cpu_after_search.system - cpu_before_search.system)
+        metrics["Average Search Depth"] = total_search_steps / sample_size
         return metrics
 
     # EXEMPLO DE EXTENSIBILIDADE:
