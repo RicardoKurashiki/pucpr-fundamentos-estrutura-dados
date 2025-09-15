@@ -13,8 +13,8 @@ from unbaltree import UnBalTree
 from utils import generate_data, get_dict, sequential_search
 
 parser = argparse.ArgumentParser()
-#parser.add_argument("--skip", action="store_true", default=True)
-parser.add_argument("--skip", default=True)
+parser.add_argument("--skip", action="store_true")
+parser.add_argument("--plot", action="store_true")
 args = parser.parse_args()
 
 
@@ -225,8 +225,8 @@ def hash_test(data):
         metrics["M parameter"] = hash_size
         metrics["Memory Usage (Peak Bytes)"] = peak_mem
         metrics["Insertion CPU Time (s)"] = (
-                                              cpu_after_insert.user - cpu_before_insert.user
-                                            ) + (cpu_after_insert.system - cpu_before_insert.system)
+            cpu_after_insert.user - cpu_before_insert.user
+        ) + (cpu_after_insert.system - cpu_before_insert.system)
 
         # --- FASE 2: BUSCA POR AMOSTRAGEM ---
         cpu_before_search = process.cpu_times()
@@ -248,8 +248,8 @@ def hash_test(data):
 
         # Coleta de métricas da Fase 2
         metrics["Search CPU Time (s)"] = (
-                                                 cpu_after_search.user - cpu_before_search.user
-                                         ) + (cpu_after_search.system - cpu_before_search.system)
+            cpu_after_search.user - cpu_before_search.user
+        ) + (cpu_after_search.system - cpu_before_search.system)
         return metrics
 
     # EXEMPLO DE EXTENSIBILIDADE:
@@ -258,7 +258,7 @@ def hash_test(data):
     # return metrics # -> retornaria algo como {'Collisions': 1}
 
     # Por enquanto, não faremos isso
-    #hash_table.search(data[len(data) // 2][0])
+    # hash_table.search(data[len(data) // 2][0])
 
 
 def plot_data_comparison(
@@ -328,10 +328,10 @@ def main():
     rd.seed(42)
     sizes = [50_000, 100_000, 500_000, 1_000_000]
     iterations = 5
-    plot = False
-    # Ricardo: Coloquei o skip como True para não alterar os resultados já gerados
+    plot = args.plot
     skip = args.skip
     if not skip:
+        print("Rodando experimentos...")
         for size in sizes:
             """ Cada conjunto de dados de tamanho N é gerado uma única vez pois fixamos a semente aleatória para garantir a
             reprodutibilidade do experimento. Caso se deseje uma ideia da melhor performance para o "caso médio geral", poderia
@@ -339,16 +339,17 @@ def main():
             """
             data = generate_data(size)
             for i in range(iterations):
-                #array_metrics = linear_array_test(data)
-                #compute_and_log_metrics(array_metrics, "linear_array", i, size)
+                # array_metrics = linear_array_test(data)
+                # compute_and_log_metrics(array_metrics, "linear_array", i, size)
                 hash_metrics = hash_test(data)
                 compute_and_log_metrics(hash_metrics, "hash_table", i, size)
-                #unbaltree_metrics = test_unbaltree_lifecycle(data)
-                #compute_and_log_metrics(unbaltree_metrics, "regular_tree", i, size)
-                #avl_metrics = test_avltree_lifecycle(data)
-                #compute_and_log_metrics(avl_metrics, "avl_tree", i, size)
+                # unbaltree_metrics = test_unbaltree_lifecycle(data)
+                # compute_and_log_metrics(unbaltree_metrics, "regular_tree", i, size)
+                # avl_metrics = test_avltree_lifecycle(data)
+                # compute_and_log_metrics(avl_metrics, "avl_tree", i, size)
 
     if plot:
+        print("Plotando dados...")
         dict = get_dict(sizes)
         plot_data_comparison(
             dict,
@@ -380,6 +381,7 @@ def main():
             algorithms=["linear_array"],
             output_path="./outputs/charts/linear_array/",
         )
+    print("Finalizado!")
 
 
 if __name__ == "__main__":
