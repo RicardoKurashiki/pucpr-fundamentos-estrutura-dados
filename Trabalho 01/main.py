@@ -13,8 +13,8 @@ from unbaltree import UnBalTree
 from utils import generate_data, get_dict, sequential_search
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--skip", action="store_true")
-parser.add_argument("--plot", action="store_true")
+parser.add_argument("-t", "--no-test", action="store_true")
+parser.add_argument("-p", "--no-plot", action="store_true")
 args = parser.parse_args()
 
 
@@ -328,9 +328,9 @@ def main():
     rd.seed(42)
     sizes = [50_000, 100_000, 500_000, 1_000_000]
     iterations = 5
-    plot = args.plot
-    skip = args.skip
-    if not skip:
+    no_test = args.no_test
+    no_plot = args.no_plot
+    if not no_test:
         print("Rodando experimentos...")
         for size in sizes:
             """ Cada conjunto de dados de tamanho N é gerado uma única vez pois fixamos a semente aleatória para garantir a
@@ -348,7 +348,7 @@ def main():
                 # avl_metrics = test_avltree_lifecycle(data)
                 # compute_and_log_metrics(avl_metrics, "avl_tree", i, size)
 
-    if plot:
+    if not no_plot:
         print("Plotando dados...")
         dict = get_dict(sizes)
         plot_data_comparison(
