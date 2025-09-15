@@ -13,7 +13,7 @@ from unbaltree import UnBalTree
 from utils import generate_data, get_dict, sequential_search
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--skip", action="store_true", default=True)
+parser.add_argument("--skip", action="store_true")
 args = parser.parse_args()
 
 
