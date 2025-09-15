@@ -13,7 +13,8 @@ from unbaltree import UnBalTree
 from utils import generate_data, get_dict, sequential_search
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--skip", action="store_true", default=True)
+#parser.add_argument("--skip", action="store_true", default=True)
+parser.add_argument("--skip", default=True)
 args = parser.parse_args()
 
 
@@ -200,37 +201,56 @@ def test_unbaltree_lifecycle(data):
     return metrics
 
 
-def tree_test(data):
-    tree = AVLTree(key=lambda registro: registro[0])
-    for item in data:
-        tree.insert(item)
-    # Captura os dados (ignorados) e o dicionário de métricas
-    _, metrics = tree.search(data[len(data) // 2][0])
-
-    # Coleta a altura da árvore, bem como a contagem de rotações e adiciona ao dicionário
-    if tree.root:
-        metrics["Tree Height"] = tree.root.height
-    metrics["Rotation Events"] = tree.rotation_count
-
-    return metrics  # Retornamos o dicionário
-
-
-def unbaltree_test(data):
-    tree = UnBalTree(key=lambda registro: registro[0])
-    for item in data:
-        tree.insert(item)
-    _, metrics = tree.search(data[len(data) // 2][0])
-
-    # Coleta a altura da árvore e adiciona ao dicionário
-    if tree.root:
-        metrics["Tree Height"] = tree.root.height
-    return metrics
-
-
 def hash_test(data):
-    hash_table = HashTable(len(data))
-    for item in data:
-        hash_table.insert(item[0], item[1:])
+    m = [100, 1000, 5000]
+    for hash_size in m:
+        metrics = {}  # dicionário para coleta das métricas
+        # Objeto Process que representa o nosso script atual
+        process = p.Process(os.getpid())
+
+        # FASE 1: INSERÇÃO
+        tracemalloc.start()
+        # Mede o tempo de CPU inicial
+        cpu_before_insert = process.cpu_times()
+
+        hash_table = HashTable(hash_size)
+        for item in data:
+            hash_table.insert(item[0], item[1:])
+
+        cpu_after_insert = process.cpu_times()
+        _, peak_mem = tracemalloc.get_traced_memory()
+        tracemalloc.stop()  # Paramos o tracemalloc aqui, pois a estrutura já está criada.
+
+        # Coleta de métricas da Fase 1
+        metrics["M parameter"] = hash_size
+        metrics["Memory Usage (Peak Bytes)"] = peak_mem
+        metrics["Insertion CPU Time (s)"] = (
+                                              cpu_after_insert.user - cpu_before_insert.user
+                                            ) + (cpu_after_insert.system - cpu_before_insert.system)
+
+        # --- FASE 2: BUSCA POR AMOSTRAGEM ---
+        cpu_before_search = process.cpu_times()
+
+        total_depth = 0
+        max_depth = 0
+        # Definimos o tamanho da amostra como 1% do total de dados.
+        # Usamos max(1, ...) para garantir que, mesmo para N muito pequeno, testamos pelo menos 1 elemento.
+        sample_percent = 0.01
+        sample_size = max(1, int(len(data) * sample_percent))
+
+        search_sample = rd.sample(data, sample_size)
+
+        for item_to_search in search_sample:
+            key_to_search = item_to_search[0]
+            _, search_metrics = hash_table.search(key_to_search)
+
+        cpu_after_search = process.cpu_times()
+
+        # Coleta de métricas da Fase 2
+        metrics["Search CPU Time (s)"] = (
+                                                 cpu_after_search.user - cpu_before_search.user
+                                         ) + (cpu_after_search.system - cpu_before_search.system)
+        return metrics
 
     # EXEMPLO DE EXTENSIBILIDADE:
     # Suponha que o search da HashTable retorne o número de colisões encontradas
@@ -238,7 +258,7 @@ def hash_test(data):
     # return metrics # -> retornaria algo como {'Collisions': 1}
 
     # Por enquanto, não faremos isso
-    hash_table.search(data[len(data) // 2][0])
+    #hash_table.search(data[len(data) // 2][0])
 
 
 def plot_data_comparison(
@@ -308,55 +328,58 @@ def main():
     rd.seed(42)
     sizes = [50_000, 100_000, 500_000, 1_000_000]
     iterations = 5
+    plot = False
     # Ricardo: Coloquei o skip como True para não alterar os resultados já gerados
     skip = args.skip
     if not skip:
         for size in sizes:
             """ Cada conjunto de dados de tamanho N é gerado uma única vez pois fixamos a semente aleatória para garantir a
             reprodutibilidade do experimento. Caso se deseje uma ideia da melhor performance para o "caso médio geral", poderia
-            ser removida a inicialização da semente aleatória, e a geração do conjunto de dado seria feita no loop interno
+            ser removida a inicialização da semente aleatória, e a geração do conjunto de dados seria feita no loop interno
             """
             data = generate_data(size)
             for i in range(iterations):
-                array_metrics = linear_array_test(data)
-                compute_and_log_metrics(array_metrics, "linear_array", i, size)
+                #array_metrics = linear_array_test(data)
+                #compute_and_log_metrics(array_metrics, "linear_array", i, size)
+                hash_metrics = hash_test(data)
+                compute_and_log_metrics(hash_metrics, "hash_table", i, size)
+                #unbaltree_metrics = test_unbaltree_lifecycle(data)
+                #compute_and_log_metrics(unbaltree_metrics, "regular_tree", i, size)
+                #avl_metrics = test_avltree_lifecycle(data)
+                #compute_and_log_metrics(avl_metrics, "avl_tree", i, size)
 
-                unbaltree_metrics = test_unbaltree_lifecycle(data)
-                compute_and_log_metrics(unbaltree_metrics, "regular_tree", i, size)
-                avl_metrics = test_avltree_lifecycle(data)
-                compute_and_log_metrics(avl_metrics, "avl_tree", i, size)
-
-    dict = get_dict(sizes)
-    plot_data_comparison(
-        dict,
-        sizes=sizes,
-        algorithms=["linear_array", "avl_tree", "regular_tree"],
-        output_path="./outputs/charts/comparison/all/",
-    )
-    plot_data_comparison(
-        dict,
-        sizes=sizes,
-        algorithms=["avl_tree", "regular_tree"],
-        output_path="./outputs/charts/comparison/trees/",
-    )
-    plot_data_comparison(
-        dict,
-        sizes=sizes,
-        algorithms=["avl_tree"],
-        output_path="./outputs/charts/avl_tree/",
-    )
-    plot_data_comparison(
-        dict,
-        sizes=sizes,
-        algorithms=["regular_tree"],
-        output_path="./outputs/charts/regular_tree/",
-    )
-    plot_data_comparison(
-        dict,
-        sizes=sizes,
-        algorithms=["linear_array"],
-        output_path="./outputs/charts/linear_array/",
-    )
+    if plot:
+        dict = get_dict(sizes)
+        plot_data_comparison(
+            dict,
+            sizes=sizes,
+            algorithms=["linear_array", "avl_tree", "regular_tree"],
+            output_path="./outputs/charts/comparison/all/",
+        )
+        plot_data_comparison(
+            dict,
+            sizes=sizes,
+            algorithms=["avl_tree", "regular_tree"],
+            output_path="./outputs/charts/comparison/trees/",
+        )
+        plot_data_comparison(
+            dict,
+            sizes=sizes,
+            algorithms=["avl_tree"],
+            output_path="./outputs/charts/avl_tree/",
+        )
+        plot_data_comparison(
+            dict,
+            sizes=sizes,
+            algorithms=["regular_tree"],
+            output_path="./outputs/charts/regular_tree/",
+        )
+        plot_data_comparison(
+            dict,
+            sizes=sizes,
+            algorithms=["linear_array"],
+            output_path="./outputs/charts/linear_array/",
+        )
 
 
 if __name__ == "__main__":
