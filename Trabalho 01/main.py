@@ -332,8 +332,7 @@ def plot_data_comparison(
 
 def main():
     rd.seed(42)
-    #sizes = [50_000, 100_000, 500_000, 1_000_000]
-    sizes = [50_000, 100_000]
+    sizes = [50_000, 100_000, 500_000, 1_000_000]
     iterations = 5
     no_test = args.no_test
     no_plot = args.no_plot
