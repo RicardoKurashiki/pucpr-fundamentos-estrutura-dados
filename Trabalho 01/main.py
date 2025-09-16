@@ -201,60 +201,62 @@ def test_unbaltree_lifecycle(data):
     return metrics
 
 
-def hash_test(data):
-    m = [100, 1000, 5000]
-    for hash_size in m:
-        print(f"Inserting {len(data)} into {hash_size} Hash Table")
-        metrics = {}  # dicionário para coleta das métricas
-        # Objeto Process que representa o nosso script atual
-        process = p.Process(os.getpid())
+def hash_test(data, m):
 
-        # FASE 1: INSERÇÃO
-        tracemalloc.start()
-        # Mede o tempo de CPU inicial
-        cpu_before_insert = process.cpu_times()
 
-        hash_table = HashTable(hash_size)
-        for item in data:
-            hash_table.insert(item[0], item[1:])
 
-        cpu_after_insert = process.cpu_times()
-        _, peak_mem = tracemalloc.get_traced_memory()
-        tracemalloc.stop()  # Paramos o tracemalloc aqui, pois a estrutura já está criada.
+    print(f"Inserting {len(data)} into {m} Hash Table")
+    metrics = {}  # dicionário para coleta das métricas
+    # Objeto Process que representa o nosso script atual
+    process = p.Process(os.getpid())
 
-        # Coleta de métricas da Fase 1
-        metrics["M parameter"] = hash_size
-        metrics["Memory Usage (Peak Bytes)"] = peak_mem
-        metrics["Insertion CPU Time (s)"] = (
-            cpu_after_insert.user - cpu_before_insert.user
-        ) + (cpu_after_insert.system - cpu_before_insert.system)
+    # FASE 1: INSERÇÃO
+    tracemalloc.start()
+    # Mede o tempo de CPU inicial
+    cpu_before_insert = process.cpu_times()
 
-        # --- FASE 2: BUSCA POR AMOSTRAGEM ---
-        cpu_before_search = process.cpu_times()
+    hash_table = HashTable(m)
+    for item in data:
+        hash_table.insert(item[0], item[1:])
 
-        total_search_steps = 0
-        max_depth = 0
-        # Definimos o tamanho da amostra como 1% do total de dados.
-        # Usamos max(1, ...) para garantir que, mesmo para N muito pequeno, testamos pelo menos 1 elemento.
-        sample_percent = 0.01
-        sample_size = max(1, int(len(data) * sample_percent))
+    cpu_after_insert = process.cpu_times()
+    _, peak_mem = tracemalloc.get_traced_memory()
+    tracemalloc.stop()  # Paramos o tracemalloc aqui, pois a estrutura já está criada.
 
-        search_sample = rd.sample(data, sample_size)
-        search_iteration = 0
-        for item_to_search in search_sample:
-            search_iteration += 1
-            key_to_search = item_to_search[0]
-            _, search_metrics = hash_table.search(key_to_search)
-            total_search_steps += search_metrics["Search Steps"]
+    # Coleta de métricas da Fase 1
+    metrics["M parameter"] = m
+    metrics["Memory Usage (Peak Bytes)"] = peak_mem
+    metrics["Insertion CPU Time (s)"] = (
+        cpu_after_insert.user - cpu_before_insert.user
+    ) + (cpu_after_insert.system - cpu_before_insert.system)
 
-        cpu_after_search = process.cpu_times()
+    # --- FASE 2: BUSCA POR AMOSTRAGEM ---
+    cpu_before_search = process.cpu_times()
 
-        # Coleta de métricas da Fase 2
-        metrics["Search CPU Time (s)"] = (
-            cpu_after_search.user - cpu_before_search.user
-        ) + (cpu_after_search.system - cpu_before_search.system)
-        metrics["Average Search Depth"] = total_search_steps / sample_size
-        return metrics
+    total_search_steps = 0
+    max_depth = 0
+    # Definimos o tamanho da amostra como 1% do total de dados.
+    # Usamos max(1, ...) para garantir que, mesmo para N muito pequeno, testamos pelo menos 1 elemento.
+    sample_percent = 0.01
+    sample_size = max(1, int(len(data) * sample_percent))
+
+    search_sample = rd.sample(data, sample_size)
+    search_iteration = 0
+    for item_to_search in search_sample:
+        search_iteration += 1
+        key_to_search = item_to_search[0]
+        _, search_metrics = hash_table.search(key_to_search)
+        total_search_steps += search_metrics["Search Steps"]
+
+    cpu_after_search = process.cpu_times()
+
+    # Coleta de métricas da Fase 2
+    metrics["Search CPU Time (s)"] = (
+        cpu_after_search.user - cpu_before_search.user
+    ) + (cpu_after_search.system - cpu_before_search.system)
+    metrics["Average Search Steps"] = total_search_steps / sample_size
+
+    return metrics
 
     # EXEMPLO DE EXTENSIBILIDADE:
     # Suponha que o search da HashTable retorne o número de colisões encontradas
@@ -330,7 +332,8 @@ def plot_data_comparison(
 
 def main():
     rd.seed(42)
-    sizes = [50_000, 100_000, 500_000, 1_000_000]
+    #sizes = [50_000, 100_000, 500_000, 1_000_000]
+    sizes = [50_000, 100_000]
     iterations = 5
     no_test = args.no_test
     no_plot = args.no_plot
@@ -345,8 +348,10 @@ def main():
             for i in range(iterations):
                 # array_metrics = linear_array_test(data)
                 # compute_and_log_metrics(array_metrics, "linear_array", i, size)
-                hash_metrics = hash_test(data)
-                compute_and_log_metrics(hash_metrics, "hash_table", i, size)
+                m = [100, 1000, 5000]
+                for hash_size in m:
+                    hash_metrics = hash_test(data, hash_size)
+                    compute_and_log_metrics(hash_metrics, "hash_table", i, size)
                 # unbaltree_metrics = test_unbaltree_lifecycle(data)
                 # compute_and_log_metrics(unbaltree_metrics, "regular_tree", i, size)
                 # avl_metrics = test_avltree_lifecycle(data)
