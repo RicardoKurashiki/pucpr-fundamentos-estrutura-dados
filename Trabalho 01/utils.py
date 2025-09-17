@@ -36,7 +36,7 @@ def gen_hashtable_samples(num_elements,  **kwargs):
     # Atualiza configuração conforme parâmetros
     config.update(kwargs)
     filename = config['filename']
-    p_hat_dense = config['p_hat_dense'],
+    p_hat_dense = config['p_hat_dense']
     seed = config['seed']
     
     rd.seed(seed)
