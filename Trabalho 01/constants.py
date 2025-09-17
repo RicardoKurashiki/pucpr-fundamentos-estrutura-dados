@@ -44,4 +44,24 @@ METRICS = {
         "ylabel": "Quantidade de Passos na Inserção",
         "xlabel": "Número de Dados",
     },
+    "Total Insertion Steps": {
+        "title": "Quantidade Total de Passos na Inserção",
+        "ylabel": "Quantidade Total de Passos na Inserção",
+        "xlabel": "Número de Dados",
+    },
+    "Average Insertion Steps": {
+        "title": "Quantidade Média de Passos na Inserção",
+        "ylabel": "Quantidade Média de Passos na Inserção",
+        "xlabel": "Número de Dados",
+    },
+    "Average Search Steps": {
+        "title": "Quantidade Média de Passos na Busca",
+        "ylabel": "Quantidade Média de Passos na Busca",
+        "xlabel": "Número de Dados",
+    },
+    "Max Insertion Steps": {
+        "title": "Quantidade Máxima de Passos na Busca",
+        "ylabel": "Quantidade Máxima de Passos na Busca",
+        "xlabel": "Número de Dados",
+    },
 }
