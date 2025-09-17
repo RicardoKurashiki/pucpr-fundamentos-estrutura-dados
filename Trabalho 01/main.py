@@ -8,12 +8,16 @@ import matplotlib.pyplot as plt
 import psutil as p
 from avltree import AVLTree
 from constants import METRICS
-from hashtable import HashTable
+from hashtableextended import HashTable
 from unbaltree import UnBalTree
 from utils import generate_data, get_dict, sequential_search
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--no-test", action="store_true")
+parser.add_argument("--array", action="store_true")
+parser.add_argument("--hash", action="store_true")
+parser.add_argument("--tree", action="store_true")
+parser.add_argument("-a", "--all", action="store_true")
 parser.add_argument("-p", "--no-plot", action="store_true")
 args = parser.parse_args()
 
@@ -234,11 +238,9 @@ def test_unbaltree_lifecycle(data):
     return metrics
 
 
-def hash_test(data, m):
+def hash_test(data, m, hash_function):
 
-
-
-    print(f"Inserting {len(data)} into {m} Hash Table")
+    print(f"Inserting {len(data)} into {hash_function} Hash Table ({m})")
     metrics = {}  # dicionário para coleta das métricas
     # Objeto Process que representa o nosso script atual
     process = p.Process(os.getpid())
@@ -248,7 +250,7 @@ def hash_test(data, m):
     # Mede o tempo de CPU inicial
     cpu_before_insert = process.cpu_times()
 
-    hash_table = HashTable(m)
+    hash_table = HashTable(m, hash_function)
     for item in data:
         hash_table.insert(item[0], item[1:])
 
@@ -303,7 +305,7 @@ def hash_test(data, m):
 def plot_data_comparison(
     data: dict,
     sizes: list = [50_000, 100_000, 500_000, 1_000_000],
-    algorithms: list = ["linear_array", "avl_tree", "regular_tree"],
+    algorithms: list = ["linear_array", "avl_tree", "regular_tree", "hash_table"],
     output_path: str = "./outputs/charts/",
 ):
     def get_progression(algorithm: str, metric: str):
@@ -369,6 +371,10 @@ def main():
     iterations = 5
     no_test = args.no_test
     no_plot = args.no_plot
+    test_array = args.array
+    test_hash = args.hash
+    test_tree = args.tree
+    test_all = args.all
     if not no_test:
         print("Rodando experimentos...")
         for size in sizes:
@@ -378,16 +384,22 @@ def main():
             """
             data = generate_data(size)
             for i in range(iterations):
-                array_metrics = linear_array_test(data)
-                compute_and_log_metrics(array_metrics, "linear_array", i, size)
-                m = [100, 1000, 5000]
-                for hash_size in m:
-                    hash_metrics = hash_test(data, hash_size)
-                    compute_and_log_metrics(hash_metrics, "hash_table", i, size)
-                unbaltree_metrics = test_unbaltree_lifecycle(data)
-                compute_and_log_metrics(unbaltree_metrics, "regular_tree", i, size)
-                avl_metrics = test_avltree_lifecycle(data)
-                compute_and_log_metrics(avl_metrics, "avl_tree", i, size)
+                if test_array or test_all:
+                    array_metrics = linear_array_test(data)
+                    compute_and_log_metrics(array_metrics, "linear_array", i, size)
+                if test_hash or test_all:
+                    m = [100, 1000, 5000]
+                    hash_functions = ['modulo', 'folding', 'golden_ratio']
+                    for hash_size in m:
+                        for function in hash_functions:
+                            hash_metrics = hash_test(data, hash_size, function)
+                            hash_metrics['Hash Function'] = function
+                            compute_and_log_metrics(hash_metrics, "hash_table", i, size)
+                if test_tree or test_all:
+                    unbaltree_metrics = test_unbaltree_lifecycle(data)
+                    compute_and_log_metrics(unbaltree_metrics, "regular_tree", i, size)
+                    avl_metrics = test_avltree_lifecycle(data)
+                    compute_and_log_metrics(avl_metrics, "avl_tree", i, size)
 
     if not no_plot:
         print("Plotando dados...")
@@ -420,6 +432,12 @@ def main():
             dict,
             sizes=sizes,
             algorithms=["linear_array"],
+            output_path="./outputs/charts/linear_array/",
+        )
+        plot_data_comparison(
+            dict,
+            sizes=sizes,
+            algorithms=["hash_table"],
             output_path="./outputs/charts/linear_array/",
         )
     print("Finalizado!")
