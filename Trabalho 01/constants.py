@@ -34,4 +34,9 @@ METRICS = {
         "ylabel": "Profundidade Máxima de Busca",
         "xlabel": "Número de Dados",
     },
+    "Steps": {
+        "title": "Quantidade de Passos",
+        "ylabel": "Quantidade de Passos",
+        "xlabel": "Número de Dados",
+    },
 }

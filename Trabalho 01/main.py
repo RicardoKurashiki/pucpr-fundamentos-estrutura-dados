@@ -75,11 +75,10 @@ def linear_array_test(data):
         _, seq_search_steps = sequential_search(data, id_to_search)
 
     cpu_after_search = process.cpu_times()
-    memoryusage_search, peak_mem = tracemalloc.get_traced_memory()
+    _, peak_mem = tracemalloc.get_traced_memory()
     tracemalloc.stop()
 
     metrics["Memory Usage (Peak Bytes)"] = peak_mem
-    metrics["Memory Usage (Bytes)"] = memoryusage_search
     metrics["Steps"] = seq_search_steps
     metrics["Search CPU Time (s)"] = (
         cpu_after_search.user - cpu_before_search.user
