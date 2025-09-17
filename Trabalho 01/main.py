@@ -89,6 +89,7 @@ def linear_array_test(data):
 
 
 def test_avltree_lifecycle(data):
+    print(f"Inserting {len(data)} into AVL Tree")
     metrics = {}  # dicionário para coleta das métricas
     # Objeto Process que representa o nosso script atual
     process = p.Process(os.getpid())
@@ -98,9 +99,11 @@ def test_avltree_lifecycle(data):
     # Mede o tempo de CPU inicial
     cpu_before_insert = process.cpu_times()
 
+    total_insert_steps = 0
     tree = AVLTree(key=lambda registro: registro[0])
     for item in data:
-        tree.insert(item)
+        insert_metrics = tree.insert(item)
+        total_insert_steps += insert_metrics["Insert Steps"]
 
     cpu_after_insert = process.cpu_times()
     _, peak_mem = tracemalloc.get_traced_memory()
@@ -111,9 +114,11 @@ def test_avltree_lifecycle(data):
     metrics["Insertion CPU Time (s)"] = (
         cpu_after_insert.user - cpu_before_insert.user
     ) + (cpu_after_insert.system - cpu_before_insert.system)
-    metrics["Rotation Events"] = tree.rotation_count
     if tree.root:
+        metrics["Rotation Events"] = tree.rotation_count
         metrics["Tree Height"] = tree.root.height
+        metrics["Total Insertion Steps"] = total_insert_steps
+        metrics["Average Insertion Steps"] = total_insert_steps/len(data)
 
     # --- FASE 2: BUSCA POR AMOSTRAGEM ---
     cpu_before_search = process.cpu_times()
@@ -146,6 +151,7 @@ def test_avltree_lifecycle(data):
 
 
 def test_unbaltree_lifecycle(data):
+    print(f"Inserting {len(data)} into Unbalanced Tree")
     metrics = {}  # dicionário para coleta das métricas
     # Objeto Process que representa o nosso script atual
     process = p.Process(os.getpid())
@@ -155,9 +161,11 @@ def test_unbaltree_lifecycle(data):
     # Mede o tempo de CPU inicial
     cpu_before_insert = process.cpu_times()
 
+    total_insert_steps = 0
     tree = UnBalTree(key=lambda registro: registro[0])
     for item in data:
-        tree.insert(item)
+        insert_metrics = tree.insert(item)
+        total_insert_steps += insert_metrics["Insert Steps"]
 
     cpu_after_insert = process.cpu_times()
     _, peak_mem = tracemalloc.get_traced_memory()
@@ -170,6 +178,8 @@ def test_unbaltree_lifecycle(data):
     ) + (cpu_after_insert.system - cpu_before_insert.system)
     if tree.root:
         metrics["Tree Height"] = tree.root.height
+        metrics["Total Insertion Steps"] = total_insert_steps
+        metrics["Average Insertion Steps"] = total_insert_steps/len(data)
 
     # --- FASE 2: BUSCA POR AMOSTRAGEM ---
     cpu_before_search = process.cpu_times()
@@ -332,7 +342,8 @@ def plot_data_comparison(
 
 def main():
     rd.seed(42)
-    sizes = [50_000, 100_000, 500_000, 1_000_000]
+    #sizes = [50_000, 100_000, 500_000, 1_000_000]
+    sizes = [50_000, 100_000]
     iterations = 5
     no_test = args.no_test
     no_plot = args.no_plot
@@ -347,14 +358,14 @@ def main():
             for i in range(iterations):
                 # array_metrics = linear_array_test(data)
                 # compute_and_log_metrics(array_metrics, "linear_array", i, size)
-                m = [100, 1000, 5000]
-                for hash_size in m:
-                    hash_metrics = hash_test(data, hash_size)
-                    compute_and_log_metrics(hash_metrics, "hash_table", i, size)
-                # unbaltree_metrics = test_unbaltree_lifecycle(data)
-                # compute_and_log_metrics(unbaltree_metrics, "regular_tree", i, size)
-                # avl_metrics = test_avltree_lifecycle(data)
-                # compute_and_log_metrics(avl_metrics, "avl_tree", i, size)
+                #m = [100, 1000, 5000]
+                #for hash_size in m:
+                #    hash_metrics = hash_test(data, hash_size)
+                #    compute_and_log_metrics(hash_metrics, "hash_table", i, size)
+                #unbaltree_metrics = test_unbaltree_lifecycle(data)
+                #compute_and_log_metrics(unbaltree_metrics, "regular_tree", i, size)
+                avl_metrics = test_avltree_lifecycle(data)
+                compute_and_log_metrics(avl_metrics, "avl_tree", i, size)
 
     if not no_plot:
         print("Plotando dados...")

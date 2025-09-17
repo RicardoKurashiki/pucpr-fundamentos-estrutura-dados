@@ -17,21 +17,23 @@ class AVLTree:
         self.rotation_count = 0
 
     def insert(self, data):
-        self.root = self._insert(self.root, data)
+        self.root, steps = self._insert(self.root, data)
+        metrics = {'Insert Steps': steps}
+        return metrics
 
     def _insert(self, root, data):
         # Inserção padrão de uma Árvore de Busca Binária
         if root is None:
-            return Node(data)
+            return (Node(data),1)
 
         # Usamos a função self.key para indicar o dado a ser compararado. Mecanismo de generalização da árvore
         key_data = self.key(data)
         key_root = self.key(root.data)
 
         if key_data < key_root:
-            root.leftNode = self._insert(root.leftNode, data)
+            root.leftNode, steps = self._insert(root.leftNode, data)
         else:
-            root.rightNode = self._insert(root.rightNode, data)
+            root.rightNode, steps = self._insert(root.rightNode, data)
 
         # Atualizar a altura do nó "pai" atual
         root.height = 1 + max(self._get_height(root.leftNode), self._get_height(root.rightNode))
@@ -44,27 +46,27 @@ class AVLTree:
         # Caso 1: Rotação Simples à Direita (Left-Left)
         if balance > 1 and key_data < self.key(root.leftNode.data):
             #print(f"Desbalanceamento Simples à Esquerda em {root.data}, aplicando Rotação à Direita.")
-            return self._right_rotate(root)
+            return (self._right_rotate(root), steps)
 
         # Caso 2: Rotação Simples à Esquerda (Right-Right)
         if balance < -1 and key_data > self.key(root.rightNode.data):
             #print(f"Desbalanceamento Simples à Direita em {root.data}, aplicando Rotação à Esquerda.")
-            return self._left_rotate(root)
+            return (self._left_rotate(root), steps)
 
         # Caso 3: Rotação Dupla Esquerda-Direita (Left-Right)
         if balance > 1 and key_data > self.key(root.leftNode.data):
             #print(f"Desbalanceamento LR em {root.data}, aplicando Rotação Esquerda-Direita.")
             root.leftNode = self._left_rotate(root.leftNode)
-            return self._right_rotate(root)
+            return (self._right_rotate(root), steps)
 
         # Caso 4: Rotação Dupla Direita-Esquerda (Right-Left)
         if balance < -1 and key_data < self.key(root.rightNode.data):
             # print(f"Desbalanceamento RL em {root.data}, aplicando Rotação Direita-Esquerda.")
             root.rightNode = self._right_rotate(root.rightNode)
-            return self._left_rotate(root)
+            return (self._left_rotate(root), steps)
 
         # Retorna o nó (potencialmente nova raiz da subárvore)
-        return root
+        return (root, steps+1)
 
     def _left_rotate(self, z):
         """Executa a rotação à esquerda na subárvore com raiz em z."""

@@ -15,27 +15,29 @@ class UnBalTree:
         self.key = key if key is not None else lambda x: x
 
     def insert(self, data):
-        self.root = self._insert(self.root, data)
+        self.root, steps = self._insert(self.root, data)
+        metrics = {'Insert Steps': steps}
+        return metrics
 
     def _insert(self, root, data):
         # Inserção padrão de uma Árvore de Busca Binária
         if root is None:
-            return Node(data)
+            return (Node(data),1)
 
         # Usamos a função self.key para indicar o dado a ser compararado. Mecanismo de generalização da árvore
         key_data = self.key(data)
         key_root = self.key(root.data)
 
         if key_data < key_root:
-            root.leftNode = self._insert(root.leftNode, data)
+            root.leftNode, steps = self._insert(root.leftNode, data)
         else:
-            root.rightNode = self._insert(root.rightNode, data)
+            root.rightNode, steps = self._insert(root.rightNode, data)
 
         # Atualizar a altura do nó "pai" atual
         root.height = 1 + max(self._get_height(root.leftNode), self._get_height(root.rightNode))
 
         # Retorna o nó (potencialmente nova raiz da subárvore)
-        return root
+        return (root, steps+1)
 
     def _get_height(self, root):
         """Retorna a altura de um nó (0 se for nulo)."""
