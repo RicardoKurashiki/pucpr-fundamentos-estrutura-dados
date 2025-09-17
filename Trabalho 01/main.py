@@ -79,7 +79,7 @@ def linear_array_test(data):
     tracemalloc.stop()
 
     metrics["Memory Usage (Peak Bytes)"] = peak_mem
-    metrics["Steps"] = seq_search_steps
+    metrics["Search Steps"] = seq_search_steps
     metrics["Search CPU Time (s)"] = (
         cpu_after_search.user - cpu_before_search.user
     ) + (cpu_after_search.system - cpu_before_search.system)

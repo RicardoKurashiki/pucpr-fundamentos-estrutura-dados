@@ -34,9 +34,14 @@ METRICS = {
         "ylabel": "Profundidade Máxima de Busca",
         "xlabel": "Número de Dados",
     },
-    "Steps": {
-        "title": "Quantidade de Passos",
-        "ylabel": "Quantidade de Passos",
+    "Search Steps": {
+        "title": "Quantidade de Passos na Busca",
+        "ylabel": "Quantidade de Passos na Busca",
+        "xlabel": "Número de Dados",
+    },
+    "Insert Steps": {
+        "title": "Quantidade de Passos na Inserção",
+        "ylabel": "Quantidade de Passos na Inserção",
         "xlabel": "Número de Dados",
     },
 }
