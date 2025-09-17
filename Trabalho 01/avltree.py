@@ -1,4 +1,4 @@
-
+ROTATION_STEPS = 4
 
 class Node:
   def __init__(self, data):
@@ -46,24 +46,24 @@ class AVLTree:
         # Caso 1: Rotação Simples à Direita (Left-Left)
         if balance > 1 and key_data < self.key(root.leftNode.data):
             #print(f"Desbalanceamento Simples à Esquerda em {root.data}, aplicando Rotação à Direita.")
-            return (self._right_rotate(root), steps)
+            return (self._right_rotate(root), steps+ROTATION_STEPS)
 
         # Caso 2: Rotação Simples à Esquerda (Right-Right)
         if balance < -1 and key_data > self.key(root.rightNode.data):
             #print(f"Desbalanceamento Simples à Direita em {root.data}, aplicando Rotação à Esquerda.")
-            return (self._left_rotate(root), steps)
+            return (self._left_rotate(root), steps+ROTATION_STEPS)
 
         # Caso 3: Rotação Dupla Esquerda-Direita (Left-Right)
         if balance > 1 and key_data > self.key(root.leftNode.data):
             #print(f"Desbalanceamento LR em {root.data}, aplicando Rotação Esquerda-Direita.")
             root.leftNode = self._left_rotate(root.leftNode)
-            return (self._right_rotate(root), steps)
+            return (self._right_rotate(root), steps+2*ROTATION_STEPS)
 
         # Caso 4: Rotação Dupla Direita-Esquerda (Right-Left)
         if balance < -1 and key_data < self.key(root.rightNode.data):
             # print(f"Desbalanceamento RL em {root.data}, aplicando Rotação Direita-Esquerda.")
             root.rightNode = self._right_rotate(root.rightNode)
-            return (self._left_rotate(root), steps)
+            return (self._left_rotate(root), steps+2*ROTATION_STEPS)
 
         # Retorna o nó (potencialmente nova raiz da subárvore)
         return (root, steps+1)
