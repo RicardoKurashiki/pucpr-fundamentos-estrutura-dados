@@ -401,3 +401,4 @@ FodyWeavers.xsd
 *.sln.iml
 /.spyproject
 *.7z
+/src/_

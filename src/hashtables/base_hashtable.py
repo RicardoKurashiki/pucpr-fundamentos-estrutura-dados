@@ -8,6 +8,7 @@ Created on Sun Sep 14 00:34:29 2025
 from abc import ABC, abstractmethod
 import os, tracemalloc
 from time import perf_counter, process_time
+import psutil
 import math
 
 # ===================================================================
@@ -20,7 +21,7 @@ operations = ['search', 'insert', 'remove', 'resize', 'total']
 # Métricas
 variables = ['steps', 'process_time', 'perf_counter', 
              'user_cpu_time', 'system_cpu_time', 
-             'memory_peak', 'memory_delta']
+             'memory_peak_python', 'memory_delta_python', 'memory_rss_os']
 
 # ===================================================================
 # DECORADOR
@@ -29,20 +30,33 @@ variables = ['steps', 'process_time', 'perf_counter',
 def profile_operation(operation_name):
     def decorator(func):
         def wrapper(self, *args, **kwargs):
-            # --- Início da Coleta ---
+            # -----------------------------------------------------------------
+            # --- Início da Coleta --------------------------------------------
+            tracemalloc.start()
+            
             start_perf = perf_counter()
             start_process = process_time()
-            start_cpu = os.times()
-            tracemalloc.clear_traces()
-            mem_before, _ = tracemalloc.get_traced_memory()
+            # start_cpu = os.times() # Preterido em prol de psutil
+            start_cpu = self._process.cpu_times() # Mais preciso e melhor
+            
+            # Desnecessário se tracemalloc é desligado ao final da coleta
+            # tracemalloc.clear_traces()
+            # mem_before, _ = tracemalloc.get_traced_memory()
 
-            # --- Executa a Função Original ---
+            # --- Executa a Função Original -----------------------------------
             # Contrato: a função deve retornar (index, steps, result)
             index, steps, result = func(self, *args, **kwargs)
 
-            # --- Fim da Coleta ---
-            mem_after, peak_mem = tracemalloc.get_traced_memory()
-            end_cpu = os.times()
+            # --- Fim da Coleta -----------------------------------------------
+            mem_after_python, peak_mem_python = tracemalloc.get_traced_memory()
+            tracemalloc.stop()
+            
+            # Captura a memória RSS do processo do S.O.
+            rss_mem_os = self._process.memory_info().rss
+            # -----------------------------------------------------------------
+            
+            # end_cpu = os.times() # Preterido em prol de psutil
+            end_cpu = self._process.cpu_times()
             end_perf = perf_counter()
             end_process = process_time()
 
@@ -51,13 +65,17 @@ def profile_operation(operation_name):
             elapsed_process = end_process - start_process
             user_cpu_delta = end_cpu.user - start_cpu.user
             system_cpu_delta = end_cpu.system - start_cpu.system
-            mem_delta = mem_after - mem_before
             
+            # Útil apenas se tracemalloc não for parado
+            # mem_delta = mem_after - mem_before
+            
+            mem_delta_python = mem_after_python
+            # 'memory_peak_python', 'memory_delta_python', 'memory_rss_os'
             # --- Atualiza as Métricas ---
             self._record_metrics(operation_name, index, steps, 
                                  elapsed_process, elapsed_perf,
                                  user_cpu_delta, system_cpu_delta, 
-                                 peak_mem, mem_delta)
+                                 peak_mem_python, mem_delta_python, rss_mem_os)
 
             return result
         return wrapper
@@ -124,7 +142,11 @@ class BaseHashTable(ABC):
         # --- Variáveis para estatísticas e métricas
         self._min_key = self._max_key = None
         
-        tracemalloc.start() # Inicia o rastreamento de memória para a instância
+        self._process = psutil.Process(os.getpid())
+        
+        # ALTERAÇÃO: CLASSE NÃO INICIARÁ O MOTOR DE RASTREAMENTO DE MEMÓRIA
+        # Ele será iniciado e parado no profile de cada operação
+        # tracemalloc.start() # Inicia o rastreamento de memória para a instância
         
         
     # ===================================================================
@@ -137,14 +159,17 @@ class BaseHashTable(ABC):
     def _record_metrics(self, operation, index, steps, 
                         process_time, perf_counter, 
                         user_cpu_time, system_cpu_time, 
-                        memory_peak, memory_delta):
+                        memory_peak_python, memory_delta_python, 
+                        memory_rss_os):
         # Cria o dicionário dinamicamente usando eval
         # metrics_data = {var: eval(var) for var in variables}
         # Mapeamento explícito, mais seguro e claro que eval()
         metrics_data = {
             'steps': steps, 'process_time': process_time, 'perf_counter': perf_counter,
             'user_cpu_time': user_cpu_time, 'system_cpu_time': system_cpu_time,
-            'memory_peak': memory_peak, 'memory_delta': memory_delta
+            'memory_peak_python': memory_peak_python, 
+            'memory_delta_python': memory_delta_python,
+            'memory_rss_os': memory_rss_os,
         }
         
         # 1. Atualiza as métricas GLOBAIS
@@ -449,6 +474,10 @@ class BaseHashTable(ABC):
     @property
     def size(self):
         return self._size
+    
+    @property
+    def pid(self):
+        return self._process
     
     
     # ===
