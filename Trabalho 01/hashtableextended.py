@@ -72,7 +72,7 @@ class HashTable:
         self._hash_function = hash_functions[hash_function]
         print(f"-> Tabela Hash de tamanho {self.size} criada com a função de hash '{hash_function}'.")
 
-    # A antiga 'hash_function' agora é um método privado que chama a função escolhida
+    # A antiga 'hash_function' agora é um metodo privado que chama a função escolhida
     def _get_hash(self, key):
         return self._hash_function(key, self.size)
 
