@@ -27,7 +27,7 @@ def gen_hashtable_samples(num_elements,  **kwargs):
     
     # Valores default para funcionamento da amostragem
     config = {
-        'filename': r'.\outputs\data.pkl.gz',
+        'filename': r'.\outputs\data-' + str(num_elements) + '.pkl.gz',
         'p_hat_dense': 0.5,
         'seed': 42,
         'start_range': 100_000_000,
@@ -49,11 +49,11 @@ def gen_hashtable_samples(num_elements,  **kwargs):
     # Indica limite máximo da lista densa
     # Desse intervalo será selecionada uma amostra
     # As chaves serão geradas de 1 até dense_range_size
-    p_dense = p_hat_dense # Proporção de elementos densos da lista: quanto menor, mais denso
+    p_dense = 1 - p_hat_dense # Proporção de elementos densos da lista: quanto menor, mais denso
     dense_range_size = int(num_elements * p_dense)
     
     # Calcula o número de chaves para cada intervalo
-    num_dense_keys = int(dense_range_size * (1 - p_dense))
+    num_dense_keys = int(dense_range_size * p_dense)
     num_sparse_keys = num_elements - num_dense_keys
 
     # Define o intervalo para lista esparsa (com menos elementos por intervalo)
