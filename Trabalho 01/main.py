@@ -55,9 +55,32 @@ def compute_and_log_metrics(metrics, name, iteration, size):
 
 
 def linear_array_test(data):
+    print(f"Inserting {len(data)} into Linear Array")
     metrics = {}  # dicionário para coleta das métricas
     # Objeto Process que representa o nosso script atual
     process = p.Process(os.getpid())
+
+    # FASE 1: INSERÇÃO
+    tracemalloc.start()
+    # Mede o tempo de CPU inicial
+    cpu_before_insert = process.cpu_times()
+
+    total_insert_steps = 0
+    linear_array = []
+    for item in data:
+        linear_array[len(linear_array):] = item
+        total_insert_steps += 1
+
+    cpu_after_insert = process.cpu_times()
+    _, peak_mem = tracemalloc.get_traced_memory()
+    tracemalloc.stop()  # Paramos o tracemalloc aqui, pois a estrutura já está criada.
+
+    # Coleta de métricas da Fase 1
+    metrics["Memory Usage (Peak Bytes)"] = peak_mem
+    metrics["Insertion CPU Time (s)"] = (
+        cpu_after_insert.user - cpu_before_insert.user
+    ) + (cpu_after_insert.system - cpu_before_insert.system)
+
 
     # --- BUSCA POR AMOSTRAGEM ---
     # Definimos o tamanho da amostra como 1% do total de dados.
@@ -65,6 +88,7 @@ def linear_array_test(data):
     sample_percent = 0.01
     sample_size = max(1, int(len(data) * sample_percent))
     search_sample = rd.sample(data, sample_size)
+    total_search_steps = 0
 
     # Busca Sequencial
     tracemalloc.start()
@@ -73,13 +97,13 @@ def linear_array_test(data):
     for item_to_search in search_sample:
         id_to_search = item_to_search[0]
         _, seq_search_steps = sequential_search(data, id_to_search)
+        total_search_steps += seq_search_steps
 
     cpu_after_search = process.cpu_times()
     _, peak_mem = tracemalloc.get_traced_memory()
     tracemalloc.stop()
 
-    metrics["Memory Usage (Peak Bytes)"] = peak_mem
-    metrics["Search Steps"] = seq_search_steps
+    metrics["Average Search Steps"] = total_search_steps / sample_size
     metrics["Search CPU Time (s)"] = (
         cpu_after_search.user - cpu_before_search.user
     ) + (cpu_after_search.system - cpu_before_search.system)
@@ -341,8 +365,7 @@ def plot_data_comparison(
 
 def main():
     rd.seed(42)
-    #sizes = [50_000, 100_000, 500_000, 1_000_000]
-    sizes = [50_000, 100_000]
+    sizes = [50_000, 100_000, 500_000, 1_000_000]
     iterations = 5
     no_test = args.no_test
     no_plot = args.no_plot
@@ -355,14 +378,14 @@ def main():
             """
             data = generate_data(size)
             for i in range(iterations):
-                # array_metrics = linear_array_test(data)
-                # compute_and_log_metrics(array_metrics, "linear_array", i, size)
-                #m = [100, 1000, 5000]
-                #for hash_size in m:
-                #    hash_metrics = hash_test(data, hash_size)
-                #    compute_and_log_metrics(hash_metrics, "hash_table", i, size)
-                #unbaltree_metrics = test_unbaltree_lifecycle(data)
-                #compute_and_log_metrics(unbaltree_metrics, "regular_tree", i, size)
+                array_metrics = linear_array_test(data)
+                compute_and_log_metrics(array_metrics, "linear_array", i, size)
+                m = [100, 1000, 5000]
+                for hash_size in m:
+                    hash_metrics = hash_test(data, hash_size)
+                    compute_and_log_metrics(hash_metrics, "hash_table", i, size)
+                unbaltree_metrics = test_unbaltree_lifecycle(data)
+                compute_and_log_metrics(unbaltree_metrics, "regular_tree", i, size)
                 avl_metrics = test_avltree_lifecycle(data)
                 compute_and_log_metrics(avl_metrics, "avl_tree", i, size)
 
