@@ -80,7 +80,7 @@ def linear_array_test(data):
     metrics["Insertion CPU Time (s)"] = (
         cpu_after_insert.user - cpu_before_insert.user
     ) + (cpu_after_insert.system - cpu_before_insert.system)
-
+    metrics["Total Insertion Steps"] = total_insert_steps
 
     # --- BUSCA POR AMOSTRAGEM ---
     # Definimos o tamanho da amostra como 1% do total de dados.
@@ -158,8 +158,8 @@ def test_avltree_lifecycle(data):
     for item_to_search in search_sample:
         key_to_search = item_to_search[0]
         _, search_metrics = tree.search(key_to_search)
-        max_depth = max(max_depth, search_metrics["Search Depth"])
-        total_depth += search_metrics["Search Depth"]
+        max_depth = max(max_depth, search_metrics["Search Steps"])
+        total_depth += search_metrics["Search Steps"]
 
     cpu_after_search = process.cpu_times()
 
@@ -167,8 +167,8 @@ def test_avltree_lifecycle(data):
     metrics["Search CPU Time (s)"] = (
         cpu_after_search.user - cpu_before_search.user
     ) + (cpu_after_search.system - cpu_before_search.system)
-    metrics["Average Search Depth"] = total_depth / sample_size
-    metrics["Max Search Depth"] = max_depth
+    metrics["Average Search Steps"] = total_depth / sample_size
+    metrics["Max Search Steps"] = max_depth
 
     return metrics
 
@@ -219,8 +219,8 @@ def test_unbaltree_lifecycle(data):
     for item_to_search in search_sample:
         key_to_search = item_to_search[0]
         _, search_metrics = tree.search(key_to_search)
-        max_depth = max(max_depth, search_metrics["Search Depth"])
-        total_depth += search_metrics["Search Depth"]
+        max_depth = max(max_depth, search_metrics["Search Steps"])
+        total_depth += search_metrics["Search Steps"]
 
     cpu_after_search = process.cpu_times()
 

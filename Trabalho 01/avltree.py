@@ -132,7 +132,7 @@ class AVLTree:
 
         # O metodo search retorna uma Variável auxiliar para medir a profundidade da busca, que equivale ao número de passos até encontrar o valor
         node, steps = self._search(self.root, data)
-        metrics = {'Search Depth': steps}
+        metrics = {'Search Steps': steps}
 
         return (node.data, metrics) if node else (None, metrics)
 
