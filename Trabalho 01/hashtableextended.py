@@ -46,15 +46,16 @@ def golden_ratio_hash(key, table_size):
     return int(index)
 
 
-# ==============================================================================
-# PASSO 2: Modificamos a classe para escolher e usar uma das funções acima.
-# ==============================================================================
 
 class HashTable:
     # Adicionamos o parâmetro 'hash_function' ao construtor
     def __init__(self, size, hash_function='modulo'):
         self.size = size
         self.table = [[] for _ in range(size)]
+
+        # Métricas internas
+        self.collision_count = 0
+        self._size_elements = 0 # Contador interno de elementos
 
         # Criamos um dicionário que mapeia o nome da função para a função real
         hash_functions = {
@@ -72,30 +73,55 @@ class HashTable:
         self._hash_function = hash_functions[hash_function]
         print(f"-> Tabela Hash de tamanho {self.size} criada com a função de hash '{hash_function}'.")
 
-    # A antiga 'hash_function' agora é um método privado que chama a função escolhida
+    # Metodo privado que chama a função escolhida
     def _get_hash(self, key):
         return self._hash_function(key, self.size)
 
     def insert(self, key, value):
-        # A única mudança aqui é chamar _get_hash em vez de hash_function
         index = self._get_hash(key)
+        bucket = self.table[index]
 
-        for pair in self.table[index]:
+        # Verifica se a chave já existe (caso de atualização)
+        for i, pair in enumerate(bucket):
             if pair[0] == key:
-                pair[1] = value
+                bucket[i] = (key, value)  # Atualiza o valor
                 return
-        self.table[index].append([key, value])
+
+        # --- LÓGICA DE CONTAGEM DE COLISÃO ---
+        # Se o bucket não estava vazio e a chave é nova, é uma colisão.
+        if len(bucket) > 0:
+            self.collision_count += 1
+
+        bucket.append((key, value))
+        self._size_elements += 1
 
     def search(self, key):
-        # A única mudança aqui é chamar _get_hash em vez de hash_function
         index = self._get_hash(key)
         search_steps = 0
         for pair in self.table[index]:
             search_steps += 1
             if pair[0] == key:
                 return pair[1], {'Search Steps': search_steps}
-        # Adicionamos a contagem de passos mesmo se não encontrar
         return None, {'Search Steps': search_steps + 1}
+
+    def get_structural_metrics(self):
+        """
+        Calcula e retorna um dicionário com métricas estruturais da tabela.
+        """
+        if self.size == 0:
+            return {}
+
+        bucket_lengths = [len(bucket) for bucket in self.table]
+        non_empty_buckets = [length for length in bucket_lengths if length > 0]
+
+        metrics = {
+            'Load Factor': self._size_elements / self.size,
+            'Total Collisions': self.collision_count,
+            'Max Bucket Size': max(bucket_lengths) if bucket_lengths else 0,
+            'Min Bucket Size (non-empty)': min(non_empty_buckets) if non_empty_buckets else 0,
+            'Empty Buckets': bucket_lengths.count(0)
+        }
+        return metrics
 
     def display(self):
         for i, bucket in enumerate(self.table):
