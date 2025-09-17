@@ -87,7 +87,7 @@ def gen_hashtable_samples(num_elements, **kwargs):
         data.append([id, name, salary, code, los])
 
     to_gzip(data, filename=filename)
-    print("Listas de dados salvas em ")
+    print(f"Listas de dados salvas em {filename}")
     return data
 
 
