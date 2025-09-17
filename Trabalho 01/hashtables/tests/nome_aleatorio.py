@@ -39,6 +39,7 @@ def gerar_nome_aleatorio():
     Retorna:
         str: Uma string contendo o nome completo gerado.
     """
+    
     # --- SELEÇÃO DOS IDIOMAS PARA CADA PARTE DO NOME ---
     # Escolhemos aleatoriamente um idioma para cada uma das três partes do nome.
     # Isso permite combinações como "João (pt) William (en) Schneider (de)".
@@ -65,10 +66,21 @@ def gerar_nome_aleatorio():
     
     return nome_completo
 
+def gerar_nomes_aleatorios(n, seed=42):
+    random.seed(seed)
+    Faker.seed(seed)
+
+    nomes = []
+    for i in range(n):
+        nomes.append(gerar_nome_aleatorio())
+    
+    return nomes
+    
+
 # --- EXECUÇÃO DO ALGORITMO ---
 # Bloco principal que será executado quando o script for iniciado.
 if __name__ == "__main__":
-    print("Gerando 10 nomes aleatórios multilíngues:")
+    print("Gerando 20 nomes aleatórios multilíngues:")
     print("-" * 40)
     
     # Gera e imprime 10 exemplos de nomes.
