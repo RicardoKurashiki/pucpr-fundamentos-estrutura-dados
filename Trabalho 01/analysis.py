@@ -2,33 +2,47 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import itertools  # Para gerar combinações de cores
 
 # --- CONFIGURAÇÃO ---
-# Mapeia os nomes dos arquivos CSV para nomes mais amigáveis e cores para os gráficos
-ALGORITHMS = {
+OUTPUT_PATH = './outputs/'
+CHARTS_PATH = os.path.join(OUTPUT_PATH, 'charts_analysis/')
+
+# Mapeia os nomes dos arquivos para nomes amigáveis e cores
+BASE_ALGORITHMS = {
     'linear_array': {'name': 'Array Linear', 'color': 'blue'},
     'regular_tree': {'name': 'Árvore Desbalanceada', 'color': 'red'},
     'avl_tree': {'name': 'Árvore Balanceada', 'color': 'green'}
 }
-OUTPUT_PATH = './outputs/'
-CHARTS_PATH = os.path.join(OUTPUT_PATH, 'charts_analysis/')
 
 
 # --- FUNÇÕES DE ANÁLISE E PLOTAGEM ---
 
 def load_all_data(path, algorithms):
     """
-    Carrega todos os arquivos CSV de resultados em um único DataFrame do Pandas.
+    Carrega todos os arquivos CSV de resultados, tratando a Tabela Hash de forma especial.
     """
     all_dfs = []
+
+    # Carrega as estruturas base (Array, Árvores)
     for key, props in algorithms.items():
         filename = os.path.join(path, f"{key}.csv")
         try:
             df = pd.read_csv(filename)
-            df['Algorithm'] = props['name']  # Adiciona uma coluna para identificar o algoritmo
+            df['Algorithm'] = props['name']
             all_dfs.append(df)
         except FileNotFoundError:
-            print(f"Aviso: Arquivo '{filename}' não encontrado. Pulando este algoritmo.")
+            print(f"Aviso: Arquivo '{filename}' não encontrado.")
+
+    # Carrega e processa a Tabela Hash
+    try:
+        df_hash = pd.read_csv(os.path.join(path, 'hash_table.csv'))
+        # Cria uma coluna de "Algoritmo" descritiva para cada configuração
+        df_hash['Algorithm'] = 'Hash Table (M=' + df_hash['M parameter'].astype(str) + \
+                               ', ' + df_hash['Hash Function'] + ')'
+        all_dfs.append(df_hash)
+    except FileNotFoundError:
+        print("Aviso: Arquivo 'hash_table.csv' não encontrado.")
 
     if not all_dfs:
         return pd.DataFrame()
@@ -40,53 +54,38 @@ def aggregate_data(df):
     """
     Agrupa os dados por algoritmo e tamanho, calculando a média e o desvio padrão.
     """
-    # Lista de colunas para agregar (todas exceto as de identificação)
-    metric_columns = df.columns.drop(['Size', 'Iteration', 'Algorithm'])
-
-    # Cria um dicionário de agregações para passar ao pandas
+    metric_columns = df.columns.drop(['Size', 'Iteration', 'Algorithm', 'M parameter', 'Hash Function'],
+                                     errors='ignore')
     aggregations = {col: ['mean', 'std'] for col in metric_columns}
-
-    # Agrupa e agrega
     agg_df = df.groupby(['Algorithm', 'Size']).agg(aggregations)
-
-    # Simplifica os nomes das colunas (ex: ('Memory Usage', 'mean') -> 'Memory Usage_mean')
     agg_df.columns = ['_'.join(col).strip() for col in agg_df.columns.values]
-
     return agg_df.reset_index()
 
 
-def plot_comparison(df_agg, metric_mean, metric_std, title, ylabel, algorithms, use_log_scale=False):
+def plot_comparison(df_agg, metric_mean, metric_std, title, ylabel, algorithms_to_plot, use_log_scale=False):
     """
     Gera um gráfico comparativo com a média (linha) e o desvio padrão (área sombreada).
     """
     plt.figure(figsize=(12, 7))
 
-    for key, props in algorithms.items():
-        algo_name = props['name']
-        color = props['color']
+    # Gerador de cores para garantir que cada algoritmo tenha uma cor única
+    colors = plt.cm.viridis(np.linspace(0, 1, len(algorithms_to_plot)))
+    color_map = {name: color for name, color in zip(algorithms_to_plot, colors)}
 
-        # Filtra os dados para o algoritmo atual
+    for algo_name in algorithms_to_plot:
         algo_df = df_agg[df_agg['Algorithm'] == algo_name]
-
         if not algo_df.empty:
-            # Extrai os dados para o plot
             sizes = algo_df['Size']
             means = algo_df[metric_mean]
-            stds = algo_df[metric_std]
+            stds = algo_df[metric_std].fillna(0)  # Preenche std nulo com 0 para evitar erros
 
-            # Plota a linha da média
-            plt.plot(sizes, means, marker='o', linestyle='-', label=f'{algo_name} (Média)', color=color)
+            plt.plot(sizes, means, marker='o', linestyle='-', label=f'{algo_name} (Média)', color=color_map[algo_name])
+            plt.fill_between(sizes, means - stds, means + stds, color=color_map[algo_name], alpha=0.15)
 
-            # Adiciona a área sombreada para o desvio padrão (média ± std)
-            plt.fill_between(sizes, means - stds, means + stds, color=color, alpha=0.15,
-                             label=f'{algo_name} (Desvio Padrão)')
-
-    # Configurações do gráfico
     plt.title(title, fontsize=16, fontweight='bold')
     plt.xlabel('Tamanho do Dataset (N)', fontsize=12)
     plt.ylabel(ylabel, fontsize=12)
 
-    # Configura a escala do eixo Y (linear ou logarítmica)
     if use_log_scale:
         plt.yscale('log')
         plt.grid(True, which="both", ls="--", alpha=0.4)
@@ -96,7 +95,6 @@ def plot_comparison(df_agg, metric_mean, metric_std, title, ylabel, algorithms, 
     plt.legend(fontsize=10)
     plt.tight_layout()
 
-    # Salva o gráfico em um arquivo
     os.makedirs(CHARTS_PATH, exist_ok=True)
     filename = os.path.join(CHARTS_PATH, f"{title.replace(' ', '_')}.png")
     plt.savefig(filename)
@@ -107,45 +105,54 @@ def plot_comparison(df_agg, metric_mean, metric_std, title, ylabel, algorithms, 
 # --- BLOCO PRINCIPAL DE EXECUÇÃO ---
 
 if __name__ == "__main__":
-    # 1. Carrega todos os dados
-    full_df = load_all_data(OUTPUT_PATH, ALGORITHMS)
+    full_df = load_all_data(OUTPUT_PATH, BASE_ALGORITHMS)
 
     if full_df.empty:
-        print("Nenhum dado encontrado para análise. Execute o script 'main.py' primeiro.")
+        print("Nenhum dado encontrado para análise.")
     else:
-        # 2. Agrega os dados para calcular média e desvio padrão
         aggregated_df = aggregate_data(full_df)
 
         print("--- Tabela de Médias e Desvios Padrão ---")
+        pd.set_option('display.max_rows', None)
         print(aggregated_df)
 
-        # 3. Gera os gráficos de comparação
         print("\n--- Gerando Gráficos de Análise ---")
 
-        # Gráfico: Custo de Inserção
-        plot_comparison(aggregated_df,
-                        'Insertion CPU Time (s)_mean', 'Insertion CPU Time (s)_std',
-                        'Custo de Construção (CPU Time)', 'CPU Time (s)', ALGORITHMS)
+        # Identifica a melhor configuração da Hash Table (menor tempo de busca para N=1M)
+        best_hash_config = aggregated_df[
+            (aggregated_df['Algorithm'].str.contains('Hash Table')) &
+            (aggregated_df['Size'] == 1000000)
+            ].sort_values('Search CPU Time (s)_mean').iloc[0]['Algorithm']
+        print(f"Melhor configuração da Tabela Hash identificada: {best_hash_config}")
 
-        # Gráfico: Custo de Busca
-        plot_comparison(aggregated_df,
-                        'Search CPU Time (s)_mean', 'Search CPU Time (s)_std',
-                        'Custo de Busca (CPU Time)', 'CPU Time (s)', ALGORITHMS, use_log_scale=True)
+        # Lista de algoritmos para a comparação geral
+        general_comparison_algos = [
+            BASE_ALGORITHMS['linear_array']['name'],
+            BASE_ALGORITHMS['regular_tree']['name'],
+            BASE_ALGORITHMS['avl_tree']['name'],
+            best_hash_config
+        ]
 
-        # Gráfico: Eficiência de Memória
-        plot_comparison(aggregated_df,
-                        'Memory Usage (Peak Bytes)_mean', 'Memory Usage (Peak Bytes)_std',
-                        'Uso de Memória', 'Memória (Bytes)', ALGORITHMS)
+        # Gráficos de Comparação Geral
+        plot_comparison(aggregated_df, 'Insertion CPU Time (s)_mean', 'Insertion CPU Time (s)_std',
+                        'Geral - Custo de Construção (CPU Time)', 'CPU Time (s)', general_comparison_algos)
+        plot_comparison(aggregated_df, 'Search CPU Time (s)_mean', 'Search CPU Time (s)_std',
+                        'Geral - Custo de Busca (CPU Time)', 'CPU Time (s)', general_comparison_algos,
+                        use_log_scale=True)
+        plot_comparison(aggregated_df, 'Memory Usage (Peak Bytes)_mean', 'Memory Usage (Peak Bytes)_std',
+                        'Geral - Uso de Memória', 'Memória (Bytes)', general_comparison_algos)
+        plot_comparison(aggregated_df, 'Average Search Steps_mean', 'Average Search Steps_std',
+                        'Geral - Eficiência de Busca (Passos)', 'Nº Médio de Passos', general_comparison_algos,
+                        use_log_scale=True)
 
-        # Gráfico: Eficiência Estrutural (Passos de Busca)
-        plot_comparison(aggregated_df,
-                        'Average Search Steps_mean', 'Average Search Steps_std',
-                        'Eficiência de Busca (Passos)', 'Nº Médio de Passos', ALGORITHMS, use_log_scale=True)
-
-        # Gráfico: Altura da Árvore (apenas para as árvores)
-        tree_algorithms = {k: v for k, v in ALGORITHMS.items() if 'tree' in k}
-        plot_comparison(aggregated_df,
-                        'Tree Height_mean', 'Tree Height_std',
-                        'Eficiência Estrutural (Altura)', 'Altura da Árvore', tree_algorithms)
+        # Gráficos de Comparação Específica das Tabelas Hash
+        hash_configs = aggregated_df[aggregated_df['Algorithm'].str.contains('Hash Table')]['Algorithm'].unique()
+        plot_comparison(aggregated_df, 'Insertion CPU Time (s)_mean', 'Insertion CPU Time (s)_std',
+                        'Hash Tables - Custo de Construção', 'CPU Time (s)', hash_configs)
+        plot_comparison(aggregated_df, 'Search CPU Time (s)_mean', 'Search CPU Time (s)_std',
+                        'Hash Tables - Custo de Busca', 'CPU Time (s)', hash_configs, use_log_scale=True)
+        plot_comparison(aggregated_df, 'Average Search Steps_mean', 'Average Search Steps_std',
+                        'Hash Tables - Eficiência de Busca (Passos)', 'Nº Médio de Passos', hash_configs,
+                        use_log_scale=True)
 
         print("\nAnálise concluída!")
