@@ -145,7 +145,6 @@ def test_avltree_lifecycle(data):
         metrics["Rotation Events"] = tree.rotation_count
         metrics["Tree Height"] = tree.root.height
         metrics["Total Insertion Steps"] = total_insert_steps
-        metrics["Average Insertion Steps"] = total_insert_steps/len(data)
 
     # --- FASE 2: BUSCA POR AMOSTRAGEM ---
     cpu_before_search = process.cpu_times()
@@ -206,7 +205,6 @@ def test_unbaltree_lifecycle(data):
     if tree.root:
         metrics["Tree Height"] = tree.root.height
         metrics["Total Insertion Steps"] = total_insert_steps
-        metrics["Average Insertion Steps"] = total_insert_steps/len(data)
 
     # --- FASE 2: BUSCA POR AMOSTRAGEM ---
     cpu_before_search = process.cpu_times()
@@ -232,8 +230,8 @@ def test_unbaltree_lifecycle(data):
     metrics["Search CPU Time (s)"] = (
         cpu_after_search.user - cpu_before_search.user
     ) + (cpu_after_search.system - cpu_before_search.system)
-    metrics["Average Search Depth"] = total_depth / sample_size
-    metrics["Max Search Depth"] = max_depth
+    metrics["Average Search Steps"] = total_depth / sample_size
+    metrics["Max Search Steps"] = max_depth
 
     return metrics
 
@@ -251,8 +249,10 @@ def hash_test(data, m, hash_function):
     cpu_before_insert = process.cpu_times()
 
     hash_table = HashTable(m, hash_function)
+    total_insert_steps = 0
     for item in data:
-        hash_table.insert(item[0], item[1:])
+        insert_metrics = hash_table.insert(item[0], item[1:])
+        total_insert_steps += insert_metrics['Insert Steps']
 
     cpu_after_insert = process.cpu_times()
     _, peak_mem = tracemalloc.get_traced_memory()
@@ -260,25 +260,27 @@ def hash_test(data, m, hash_function):
 
     # Coleta de métricas da Fase 1
     metrics["M parameter"] = m
+    metrics["Hash Function"] = hash_function
     metrics["Memory Usage (Peak Bytes)"] = peak_mem
     metrics["Insertion CPU Time (s)"] = (
         cpu_after_insert.user - cpu_before_insert.user
     ) + (cpu_after_insert.system - cpu_before_insert.system)
+    metrics["Total Insertion Steps"] = total_insert_steps
+
+    structural_metrics = hash_table.get_structural_metrics()
+    metrics.update(structural_metrics)
 
     # --- FASE 2: BUSCA POR AMOSTRAGEM ---
     cpu_before_search = process.cpu_times()
 
     total_search_steps = 0
-    max_depth = 0
-    # Definimos o tamanho da amostra como 1% do total de dados.
-    # Usamos max(1, ...) para garantir que, mesmo para N muito pequeno, testamos pelo menos 1 elemento.
-    sample_percent = 0.01
-    sample_size = max(1, int(len(data) * sample_percent))
+    sample_size = 512
+    if len(data) < sample_size:
+        search_sample = data
+    else:
+        search_sample = rd.sample(data, sample_size)
 
-    search_sample = rd.sample(data, sample_size)
-    search_iteration = 0
     for item_to_search in search_sample:
-        search_iteration += 1
         key_to_search = item_to_search[0]
         _, search_metrics = hash_table.search(key_to_search)
         total_search_steps += search_metrics["Search Steps"]
