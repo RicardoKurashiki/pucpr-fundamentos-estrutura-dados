@@ -78,14 +78,17 @@ class HashTable:
         return self._hash_function(key, self.size)
 
     def insert(self, key, value):
+        steps = 0
         index = self._get_hash(key)
+        steps += 1  # Contabiliza a operação de hash
         bucket = self.table[index]
 
         # Verifica se a chave já existe (caso de atualização)
         for i, pair in enumerate(bucket):
+            steps += 1  # Cada comparação é um passo
             if pair[0] == key:
                 bucket[i] = (key, value)  # Atualiza o valor
-                return
+                return {'Insert Steps': steps}
 
         # --- LÓGICA DE CONTAGEM DE COLISÃO ---
         # Se o bucket não estava vazio e a chave é nova, é uma colisão.
@@ -93,7 +96,10 @@ class HashTable:
             self.collision_count += 1
 
         bucket.append((key, value))
+        steps += 1  # Contabiliza a operação de append
         self._size_elements += 1
+
+        return {'Insert Steps': steps}  # Retorna os passos para a inserção
 
     def search(self, key):
         index = self._get_hash(key)
