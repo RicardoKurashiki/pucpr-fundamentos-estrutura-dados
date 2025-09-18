@@ -145,7 +145,7 @@ if __name__ == "__main__":
         # Filtra os resultados da Hash Table para N=1,000,000
         hash_results_for_best = aggregated_df[
             (aggregated_df['Algorithm'].str.contains('Hash Table')) &
-            (aggregated_df['Size'] == 500000)
+            (aggregated_df['Size'] == 1000000)
             ]
 
         # Se encontrou resultados, identifica a melhor e a adiciona para a comparação geral

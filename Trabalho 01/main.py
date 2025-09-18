@@ -10,7 +10,7 @@ from avltree import AVLTree
 from constants import METRICS
 from hashtableextended import HashTable
 from unbaltree import UnBalTree
-from utils import generate_data, get_dict, sequential_search
+from utils import generate_data, get_dict, sequential_search, gen_hashtable_samples
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--no-test", action="store_true")
@@ -89,8 +89,9 @@ def linear_array_test(data):
     # --- BUSCA POR AMOSTRAGEM ---
     # Definimos o tamanho da amostra como 1% do total de dados.
     # Usamos max(1, ...) para garantir que, mesmo para N muito pequeno, testamos pelo menos 1 elemento.
-    sample_percent = 0.01
-    sample_size = max(1, int(len(data) * sample_percent))
+    #sample_percent = 0.01
+    #sample_size = max(1, int(len(data) * sample_percent))
+    sample_size = 512
     search_sample = rd.sample(data, sample_size)
     total_search_steps = 0
 
@@ -153,8 +154,9 @@ def test_avltree_lifecycle(data):
     max_depth = 0
     # Definimos o tamanho da amostra como 1% do total de dados.
     # Usamos max(1, ...) para garantir que, mesmo para N muito pequeno, testamos pelo menos 1 elemento.
-    sample_percent = 0.01
-    sample_size = max(1, int(len(data) * sample_percent))
+    #sample_percent = 0.01
+    #sample_size = max(1, int(len(data) * sample_percent))
+    sample_size = 512
 
     search_sample = rd.sample(data, sample_size)
 
@@ -213,8 +215,9 @@ def test_unbaltree_lifecycle(data):
     max_depth = 0
     # Definimos o tamanho da amostra como 1% do total de dados.
     # Usamos max(1, ...) para garantir que, mesmo para N muito pequeno, testamos pelo menos 1 elemento.
-    sample_percent = 0.01
-    sample_size = max(1, int(len(data) * sample_percent))
+    #sample_percent = 0.01
+    #sample_size = max(1, int(len(data) * sample_percent))
+    sample_size = 512
 
     search_sample = rd.sample(data, sample_size)
 
@@ -384,7 +387,7 @@ def main():
             reprodutibilidade do experimento. Caso se deseje uma ideia da melhor performance para o "caso médio geral", poderia
             ser removida a inicialização da semente aleatória, e a geração do conjunto de dados seria feita no loop interno
             """
-            data = generate_data(size)
+            data = gen_hashtable_samples(size)
             for i in range(iterations):
                 if test_array or test_all:
                     array_metrics = linear_array_test(data)
