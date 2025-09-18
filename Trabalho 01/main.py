@@ -1,4 +1,5 @@
 import argparse
+import pandas as pd
 import csv
 import os
 import random as rd
@@ -148,32 +149,44 @@ def test_avltree_lifecycle(data):
         metrics["Total Insertion Steps"] = total_insert_steps
 
     # --- FASE 2: BUSCA POR AMOSTRAGEM ---
-    cpu_before_search = process.cpu_times()
 
-    total_depth = 0
-    max_depth = 0
+    total_depth_for_one_run = 0
+    max_depth_for_one_run = 0
     # Definimos o tamanho da amostra como 1% do total de dados.
     # Usamos max(1, ...) para garantir que, mesmo para N muito pequeno, testamos pelo menos 1 elemento.
     #sample_percent = 0.01
     #sample_size = max(1, int(len(data) * sample_percent))
     sample_size = 512
-
     search_sample = rd.sample(data, sample_size)
 
-    for item_to_search in search_sample:
-        key_to_search = item_to_search[0]
-        _, search_metrics = tree.search(key_to_search)
-        max_depth = max(max_depth, search_metrics["Search Steps"])
-        total_depth += search_metrics["Search Steps"]
+    # Define o número de repetições para amplificar a carga de trabalho - várias medições com valor zero sem essas repetições
+    search_repetitions = 20
+
+    cpu_before_search = process.cpu_times()
+
+    for i in range(search_repetitions):
+        for item_to_search in search_sample:
+            key_to_search = item_to_search[0]
+            _, search_metrics = tree.search(key_to_search)
+            # As métricas de profundidade só precisam ser calculadas na primeira repetição
+            if i == 0:
+                total_depth_for_one_run += search_metrics["Search Steps"]
+                max_depth_for_one_run = max(max_depth_for_one_run, search_metrics["Search Steps"])
+
 
     cpu_after_search = process.cpu_times()
 
     # Coleta de métricas da Fase 2
-    metrics["Search CPU Time (s)"] = (
-        cpu_after_search.user - cpu_before_search.user
-    ) + (cpu_after_search.system - cpu_before_search.system)
-    metrics["Average Search Steps"] = total_depth / sample_size
-    metrics["Max Search Steps"] = max_depth
+    total_cpu_time = (cpu_after_search.user - cpu_before_search.user) + (
+                cpu_after_search.system - cpu_before_search.system)
+    # Normaliza o tempo de CPU pelo número de repetições para obter a média precisa
+    metrics["Search CPU Time (s)"] = total_cpu_time / search_repetitions
+    # As métricas de profundidade são baseadas em uma única execução da amostra
+    if search_sample:
+        metrics["Average Search Depth"] = total_depth_for_one_run / len(search_sample)
+    else:
+        metrics["Average Search Depth"] = 0
+    metrics["Max Search Depth"] = max_depth_for_one_run
 
     return metrics
 
@@ -209,32 +222,38 @@ def test_unbaltree_lifecycle(data):
         metrics["Total Insertion Steps"] = total_insert_steps
 
     # --- FASE 2: BUSCA POR AMOSTRAGEM ---
-    cpu_before_search = process.cpu_times()
-
-    total_depth = 0
-    max_depth = 0
+    total_depth_for_one_run = 0
+    max_depth_for_one_run = 0
     # Definimos o tamanho da amostra como 1% do total de dados.
     # Usamos max(1, ...) para garantir que, mesmo para N muito pequeno, testamos pelo menos 1 elemento.
     #sample_percent = 0.01
     #sample_size = max(1, int(len(data) * sample_percent))
     sample_size = 512
-
     search_sample = rd.sample(data, sample_size)
+    search_repetitions = 20
 
-    for item_to_search in search_sample:
-        key_to_search = item_to_search[0]
-        _, search_metrics = tree.search(key_to_search)
-        max_depth = max(max_depth, search_metrics["Search Steps"])
-        total_depth += search_metrics["Search Steps"]
+    cpu_before_search = process.cpu_times()
+
+    for i in range(search_repetitions):
+        for item_to_search in search_sample:
+            key_to_search = item_to_search[0]
+            _, search_metrics = tree.search(key_to_search)
+            if i == 0:
+                total_depth_for_one_run += search_metrics["Search Steps"]
+                max_depth_for_one_run = max(max_depth_for_one_run, search_metrics["Search Steps"])
 
     cpu_after_search = process.cpu_times()
 
     # Coleta de métricas da Fase 2
-    metrics["Search CPU Time (s)"] = (
-        cpu_after_search.user - cpu_before_search.user
-    ) + (cpu_after_search.system - cpu_before_search.system)
-    metrics["Average Search Steps"] = total_depth / sample_size
-    metrics["Max Search Steps"] = max_depth
+    total_cpu_time = (cpu_after_search.user - cpu_before_search.user) + (
+                cpu_after_search.system - cpu_before_search.system)
+    metrics["Search CPU Time (s)"] = total_cpu_time / search_repetitions
+
+    if search_sample:
+        metrics["Average Search Depth"] = total_depth_for_one_run / len(search_sample)
+    else:
+        metrics["Average Search Depth"] = 0
+    metrics["Max Search Depth"] = max_depth_for_one_run
 
     return metrics
 
@@ -295,6 +314,23 @@ def hash_test(data, m, hash_function):
         cpu_after_search.user - cpu_before_search.user
     ) + (cpu_after_search.system - cpu_before_search.system)
     metrics["Average Search Steps"] = total_search_steps / sample_size
+
+    # Salvar dados de distribuição dos buckets para geração de um histograma
+    bucket_lengths = [len(bucket) for bucket in hash_table.table]
+    # Usamos o pandas para contar a frequência de cada tamanho de bucket
+    value_counts = pd.Series(bucket_lengths).value_counts().reset_index()
+    value_counts.columns = ['Bucket Size', 'Frequency']
+
+    # Adiciona colunas de identificação para esta execução específica
+    value_counts['Size'] = len(data)
+    value_counts['M parameter'] = m
+    value_counts['Hash Function'] = hash_function
+
+    # Salva esses dados em um arquivo CSV separado
+    dist_filename = './outputs/hash_distribution.csv'
+    file_exists = os.path.exists(dist_filename)
+    # 'a' para append, para não sobrescrever os resultados de outras execuções
+    value_counts.to_csv(dist_filename, mode='a', header=not file_exists, index=False)
 
     return metrics
 

@@ -1,5 +1,5 @@
 import math
-
+import numpy as np
 
 # ==============================================================================
 # PASSO 1: Definimos as funções de hash fora da classe, como "ferramentas"
@@ -125,7 +125,8 @@ class HashTable:
             'Total Collisions': self.collision_count,
             'Max Bucket Size': max(bucket_lengths) if bucket_lengths else 0,
             'Min Bucket Size (non-empty)': min(non_empty_buckets) if non_empty_buckets else 0,
-            'Empty Buckets': bucket_lengths.count(0)
+            'Empty Buckets': bucket_lengths.count(0),
+            'Std Dev of Bucket Lengths': np.std(bucket_lengths),
         }
         return metrics
 
