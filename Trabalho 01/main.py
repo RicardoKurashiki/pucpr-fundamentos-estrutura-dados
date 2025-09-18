@@ -159,7 +159,8 @@ def test_avltree_lifecycle(data):
     sample_size = 512
     search_sample = rd.sample(data, sample_size)
 
-    # Define o número de repetições para amplificar a carga de trabalho - várias medições com valor zero sem essas repetições
+    # Define o número de repetições para amplificar a carga de trabalho, anteriormente registraram-se várias medições com
+    # valor zero sem essas repetições
     search_repetitions = 20
 
     cpu_before_search = process.cpu_times()
@@ -179,13 +180,9 @@ def test_avltree_lifecycle(data):
     # Coleta de métricas da Fase 2
     total_cpu_time = (cpu_after_search.user - cpu_before_search.user) + (
                 cpu_after_search.system - cpu_before_search.system)
-    # Normaliza o tempo de CPU pelo número de repetições para obter a média precisa
+    # Normaliza o tempo de CPU pelo número de repetições para obter um número médio, evitando os zeros que ocorriam anteriormente
     metrics["Search CPU Time (s)"] = total_cpu_time / search_repetitions
-    # As métricas de profundidade são baseadas em uma única execução da amostra
-    if search_sample:
-        metrics["Average Search Steps"] = total_depth_for_one_run / len(search_sample)
-    else:
-        metrics["Average Search Steps"] = 0
+    metrics["Average Search Steps"] = total_depth_for_one_run / len(search_sample)
     metrics["Max Search Steps"] = max_depth_for_one_run
 
     return metrics
@@ -230,6 +227,8 @@ def test_unbaltree_lifecycle(data):
     #sample_size = max(1, int(len(data) * sample_percent))
     sample_size = 512
     search_sample = rd.sample(data, sample_size)
+    # Define o número de repetições para amplificar a carga de trabalho, anteriormente registraram-se várias medições com
+    # valor zero sem essas repetições
     search_repetitions = 20
 
     cpu_before_search = process.cpu_times()
@@ -247,12 +246,9 @@ def test_unbaltree_lifecycle(data):
     # Coleta de métricas da Fase 2
     total_cpu_time = (cpu_after_search.user - cpu_before_search.user) + (
                 cpu_after_search.system - cpu_before_search.system)
+    # Normaliza o tempo de CPU pelo número de repetições para obter um número médio, evitando os zeros que ocorriam anteriormente
     metrics["Search CPU Time (s)"] = total_cpu_time / search_repetitions
-
-    if search_sample:
-        metrics["Average Search Steps"] = total_depth_for_one_run / len(search_sample)
-    else:
-        metrics["Average Search Steps"] = 0
+    metrics["Average Search Steps"] = total_depth_for_one_run / len(search_sample)
     metrics["Max Search Steps"] = max_depth_for_one_run
 
     return metrics

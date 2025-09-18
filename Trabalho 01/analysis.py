@@ -338,12 +338,12 @@ def plot_comparison(df_agg, metric_mean, metric_std, title, ylabel, algorithms_t
             plt.fill_between(sizes, means - stds, means + stds, color=color, alpha=0.1)
 
     plt.title(title, fontsize=16, fontweight='bold')
-    plt.xlabel('Tamanho do Dataset (N)', fontsize=12)
-    plt.ylabel(ylabel, fontsize=12)
+    plt.xlabel('Tamanho do Dataset (N)', fontsize=14)
+    plt.ylabel(ylabel, fontsize=14)
 
     if use_log_scale: plt.yscale('log')
     plt.grid(True, which="both", ls="--", alpha=0.4)
-    plt.legend(fontsize=11, loc='best')
+    plt.legend(fontsize=14, loc='best')
     plt.tight_layout()
 
     os.makedirs(CHARTS_PATH, exist_ok=True)
@@ -380,13 +380,14 @@ if __name__ == "__main__":
         # Filtra os resultados da Hash Table para N=1,000,000
         hash_results_for_best = aggregated_df[
             (aggregated_df['Algorithm'].str.contains('Hash Table')) &
-            (aggregated_df['Size'] == 500000)
+            (aggregated_df['Size'] == 1000000)
             ]
 
         # Se encontrou resultados, identifica a melhor e a adiciona para a comparação geral
         if not hash_results_for_best.empty: #
             #best_hash_config = hash_results_for_best.sort_values('Search CPU Time (s)_mean').iloc[0]['Algorithm']
-            best_hash_config = hash_results_for_best.sort_values('Average Search Steps_mean').iloc[0]['Algorithm']
+            #Insertion CPU Time (s),Total Insertion Steps, Std Dev of Bucket Lengths
+            best_hash_config = hash_results_for_best.sort_values('Std Dev of Bucket Lengths_mean').iloc[0]['Algorithm']
             general_comparison_algos.append(best_hash_config)
             print(f"\nMelhor configuração da Tabela Hash identificada para comparação: {best_hash_config}\n")
         else:
@@ -395,18 +396,18 @@ if __name__ == "__main__":
 
         # Gera os gráficos de comparação geral incluindo a melhor Hash Table
         plot_comparison(aggregated_df, 'Insertion CPU Time (s)_mean', 'Insertion CPU Time (s)_std',
-                        'Geral - Custo de Construção (CPU Time)', 'CPU Time (s)', general_comparison_algos)
+                        'Custo de Inserção (CPU Time)', 'CPU Time (s)', general_comparison_algos)
         plot_comparison(aggregated_df, 'Search CPU Time (s)_mean', 'Search CPU Time (s)_std',
-                        'Geral - Custo de Busca (CPU Time)', 'CPU Time (s)', general_comparison_algos,
+                        'Custo de Busca (CPU Time)', 'CPU Time (s)', general_comparison_algos,
                         use_log_scale=True)
         plot_comparison(aggregated_df, 'Memory Usage (Peak Bytes)_mean', 'Memory Usage (Peak Bytes)_std',
-                        'Geral - Uso de Memória', 'Memória (Bytes)', general_comparison_algos)
+                        'Uso de Memória', 'Memória (Bytes)', general_comparison_algos)
 
         plot_comparison(aggregated_df, 'Average Search Steps_mean', 'Average Search Steps_std',
-                        'Geral - Eficiência de Busca (Passos)', 'Nº Médio de Passos', general_comparison_algos,
+                        'Eficiência de Busca (Passos)', 'Nº Médio de Passos', general_comparison_algos,
                         use_log_scale=True)
         plot_comparison(aggregated_df, 'Total Insertion Steps_mean', 'Total Insertion Steps_std',
-                        'Geral - Eficiência de Inserção (Passos)', 'Nº Médio de Passos', general_comparison_algos,use_log_scale=True)
+                        'Eficiência de Inserção (Passos)', 'Nº Médio de Passos', general_comparison_algos,use_log_scale=True)
 
         # GRÁFICOS ESPECÍFICOS DAS TABELAS HASH (Comparando todas as configurações)
         hash_configs = sorted(
