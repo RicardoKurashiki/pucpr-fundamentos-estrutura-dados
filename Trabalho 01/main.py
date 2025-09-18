@@ -183,10 +183,10 @@ def test_avltree_lifecycle(data):
     metrics["Search CPU Time (s)"] = total_cpu_time / search_repetitions
     # As métricas de profundidade são baseadas em uma única execução da amostra
     if search_sample:
-        metrics["Average Search Depth"] = total_depth_for_one_run / len(search_sample)
+        metrics["Average Search Steps"] = total_depth_for_one_run / len(search_sample)
     else:
-        metrics["Average Search Depth"] = 0
-    metrics["Max Search Depth"] = max_depth_for_one_run
+        metrics["Average Search Steps"] = 0
+    metrics["Max Search Steps"] = max_depth_for_one_run
 
     return metrics
 
@@ -250,10 +250,10 @@ def test_unbaltree_lifecycle(data):
     metrics["Search CPU Time (s)"] = total_cpu_time / search_repetitions
 
     if search_sample:
-        metrics["Average Search Depth"] = total_depth_for_one_run / len(search_sample)
+        metrics["Average Search Steps"] = total_depth_for_one_run / len(search_sample)
     else:
-        metrics["Average Search Depth"] = 0
-    metrics["Max Search Depth"] = max_depth_for_one_run
+        metrics["Average Search Steps"] = 0
+    metrics["Max Search Steps"] = max_depth_for_one_run
 
     return metrics
 

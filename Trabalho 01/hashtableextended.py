@@ -1,13 +1,8 @@
 import math
 import numpy as np
 
-# ==============================================================================
-# PASSO 1: Definimos as funções de hash fora da classe, como "ferramentas"
-# que a classe poderá usar.
-# ==============================================================================
-
 def modulo_hash(key, table_size):
-    """Sua função original: hash baseado no operador módulo."""
+    """Função de hash baseada no operador módulo."""
     if not isinstance(key, int):
         # A versão original só funcionava para números. Adicionamos suporte
         # a outros tipos usando a função hash() nativa do Python.
@@ -20,7 +15,7 @@ def folding_hash(key, table_size, chunk_size=2):
     key_str = str(key)
     total = 0
 
-    # Se a chave for muito pequena, use o hash de módulo como fallback
+    # Se a chave for muito pequena, usa-se o hash de módulo como fallback
     if len(key_str) < chunk_size:
         return modulo_hash(key, table_size)
 
@@ -48,7 +43,6 @@ def golden_ratio_hash(key, table_size):
 
 
 class HashTable:
-    # Adicionamos o parâmetro 'hash_function' ao construtor
     def __init__(self, size, hash_function='modulo'):
         self.size = size
         self.table = [[] for _ in range(size)]
@@ -67,7 +61,7 @@ class HashTable:
         # Verificamos se a função escolhida é válida
         if hash_function not in hash_functions:
             raise ValueError(
-                f"Hash function '{hash_function}' not recognized. Available: {list(hash_functions.keys())}")
+                f"Função hash '{hash_function}' não reconhecida. Disponíveis: {list(hash_functions.keys())}")
 
         # Armazenamos a FUNÇÃO a ser usada, não apenas seu nome
         self._hash_function = hash_functions[hash_function]
@@ -90,7 +84,7 @@ class HashTable:
                 bucket[i] = (key, value)  # Atualiza o valor
                 return {'Insert Steps': steps}
 
-        # --- LÓGICA DE CONTAGEM DE COLISÃO ---
+        # Lógica de contagem de colisões
         # Se o bucket não estava vazio e a chave é nova, é uma colisão.
         if len(bucket) > 0:
             self.collision_count += 1
@@ -135,19 +129,16 @@ class HashTable:
             print(f"{i}: {bucket}")
 
 
-# ==============================================================================
-# PASSO 3: Demonstração do uso das diferentes funções.
-# ==============================================================================
 if __name__ == "__main__":
-    # Nossos dados de teste
+    # dados de teste
     data = {
         100: "Alice",
-        232: "Bob",
-        335: "Charlie",
-        900: "Diana",
-        432: "Eve",
-        567: "Frank",
-        12345678: "George"  # Uma chave longa para testar o folding
+        232: "Beto",
+        335: "Carlos",
+        900: "Diego",
+        432: "Evaldo",
+        567: "Fernando",
+        12345678: "Gustavo"  # Uma chave longa para testar o folding
     }
 
     print("\n----- Usando 'modulo' hash -----")
