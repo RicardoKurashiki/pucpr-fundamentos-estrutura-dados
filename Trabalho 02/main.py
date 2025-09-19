@@ -1,5 +1,7 @@
 from geopy.distance import geodesic
 from graph import Graph
+from algorithms import dijkstra, greedy_search, a_star, depth_first_search, breadth_first_search
+
 
 coords = {
     "Curitiba": {
@@ -57,13 +59,13 @@ roads = [
     ("Toledo", "Foz do Iguaçú"),
 ]
 
-
 def calculate_distance(coord1, coord2):
     return round(geodesic(coord1, coord2).km, 2)
 
-
 def main():
     graph = Graph()
+    # Mapeamento reverso de ID para Nome para facilitar a exibição
+    id_to_name = {}
     for key, value in coords.items():
         graph.add_node(value["id"], key)
 
@@ -72,7 +74,43 @@ def main():
         dist = calculate_distance(coords[city1]["coord"], coords[city2]["coord"])
         graph.add_edge(id1, id2, dist)
 
-    graph.show()
+    # Visualização do Grafo
+    graph.show("parana_roads.html")
+    print("Grafo de cidades do Paraná gerado em 'parana_roads.html'")
+
+    # --- Execução e Comparação dos Algoritmos ---
+    start_city = "Curitiba"
+    goal_city = "Foz do Iguaçú"
+
+    start_id = coords[start_city]["id"]
+    goal_id = coords[goal_city]["id"]
+
+    print(f"\nBuscando o caminho de '{start_city}' para '{goal_city}'...")
+
+    algorithms_to_run = [
+        dijkstra,
+        a_star,
+        greedy_search,
+        breadth_first_search,
+        depth_first_search
+    ]
+
+    results = []
+    for algorithm_func in algorithms_to_run:
+        result = algorithm_func(graph, start_id, goal_id)
+        if result:
+            results.append(result)
+
+    # --- Apresentação dos Resultados ---
+    print("\n--- Tabela Comparativa de Resultados ---\n")
+    print(
+        f"{'Algoritmo':<15} | {'Custo (km)':<12} | {'Nós Expandidos':<16} | {'Tam. Máx. Fronteira':<20} | {'Caminho Encontrado'}")
+    print("-" * 120)
+
+    for res in sorted(results, key=lambda x: x['cost']):
+        path_names = " -> ".join([id_to_name[i] for i in res['path']])
+        print(
+            f"{res['name']:<15} | {res['cost']:<12.2f} | {res['nodes_expanded']:<16} | {res['max_frontier_size']:<20} | {path_names}")
 
 
 if __name__ == "__main__":
