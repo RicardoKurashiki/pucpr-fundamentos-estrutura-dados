@@ -62,12 +62,14 @@ roads = [
 def calculate_distance(coord1, coord2):
     return round(geodesic(coord1, coord2).km, 2)
 
+
 def main():
     graph = Graph()
     # Mapeamento reverso de ID para Nome para facilitar a exibição
     id_to_name = {}
     for key, value in coords.items():
-        graph.add_node(value["id"], key)
+        graph.add_node(value["id"], key, value["coord"])
+        id_to_name[value["id"]] = key
 
     for city1, city2 in roads:
         id1, id2 = coords[city1]["id"], coords[city2]["id"]
