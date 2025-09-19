@@ -129,7 +129,8 @@ def greedy_search(graph, start_id, goal_id):
 
     # 1. Inicialização
     # A prioridade aqui é SÓ a heurística (distância em linha reta até o fim).
-    pq = [(0, start_id)]
+    h_start = heuristic(graph.get_node(start_id).coord, goal_node.coord)
+    pq = [(h_start, start_id)]
     came_from = {}
     visited = {start_id}  # Usamos um 'visited' simples pois não precisamos re-visitar nós.
 
@@ -194,7 +195,8 @@ def a_star(graph, start_id, goal_id):
 
     # 1. Inicialização
     # A prioridade é o f_score (g_score + h_score).
-    pq = [(0, start_id)]
+    h_start = heuristic(graph.get_node(start_id).coord, goal_node.coord)
+    pq = [(h_start, start_id)]
     came_from = {}
 
     # g_score é o mesmo que o 'cost_so_far' do Dijkstra.
@@ -234,21 +236,21 @@ def a_star(graph, start_id, goal_id):
 
                 heapq.heappush(pq, (f_score, neighbor_id))
 
-        # --- Fim do Profiling e Coleta de Métricas ---
-        cpu_time_end = process.cpu_times()
-        mem_peak = tracemalloc.get_traced_memory()[1]
-        tracemalloc.stop()
+    # --- Fim do Profiling e Coleta de Métricas ---
+    cpu_time_end = process.cpu_times()
+    mem_peak = tracemalloc.get_traced_memory()[1]
+    tracemalloc.stop()
 
-        cpu_time = (cpu_time_end.user - cpu_time_start.user) + (cpu_time_end.system - cpu_time_start.system)
-        memory_peak_kb = round(mem_peak / 1024, 2)
+    cpu_time = (cpu_time_end.user - cpu_time_start.user) + (cpu_time_end.system - cpu_time_start.system)
+    memory_peak_kb = round(mem_peak / 1024, 2)
 
-        if path_found:
-            return {
-                "name": "A* Search", "path": path_found, "cost": round(g_score[goal_id], 2),
-                "nodes_expanded": nodes_expanded, "max_frontier_size": max_frontier_size,
-                "cpu_time": cpu_time, "memory_peak_kb": memory_peak_kb
-            }
-        return None
+    if path_found:
+        return {
+            "name": "A* Search", "path": path_found, "cost": round(g_score[goal_id], 2),
+            "nodes_expanded": nodes_expanded, "max_frontier_size": max_frontier_size,
+            "cpu_time": cpu_time, "memory_peak_kb": memory_peak_kb
+        }
+    return None
 
 def depth_first_search(graph, start_id, goal_id):
     """
@@ -296,7 +298,7 @@ def depth_first_search(graph, start_id, goal_id):
     if path_found:
         cost = sum(graph.get_edge_weight(path_found[i], path_found[i+1]) for i in range(len(path_found) - 1))
         return {
-            "name": "Greedy Search", "path": path_found, "cost": round(cost, 2),
+            "name": "DFS", "path": path_found, "cost": round(cost, 2),
             "nodes_expanded": nodes_expanded, "max_frontier_size": max_frontier_size,
             "cpu_time": cpu_time, "memory_peak_kb": memory_peak_kb
         }

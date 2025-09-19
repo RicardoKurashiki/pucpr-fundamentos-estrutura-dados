@@ -2,63 +2,52 @@ from geopy.distance import geodesic
 from graph import Graph
 from algorithms import dijkstra, greedy_search, a_star, depth_first_search, breadth_first_search
 
+# --- Cenário: Malha Logística Sul-Sudeste do Brasil ---
+# Um grafo com 15 cidades importantes para a logística de transportes.
 
 coords = {
-    "Curitiba": {
-        "id": 1,
-        "coord": (-25.4284, -49.2733),
-    },
-    "Ponta Grossa": {
-        "id": 2,
-        "coord": (-25.095, -50.1619),
-    },
-    "Londrina": {
-        "id": 3,
-        "coord": (-23.3103, -51.1628),
-    },
-    "Maringa": {
-        "id": 4,
-        "coord": (-23.4205, -51.9331),
-    },
-    "Manoel Ribas": {
-        "id": 5,
-        "coord": (-24.5146, -51.6668),
-    },
-    "Cascavel": {
-        "id": 6,
-        "coord": (-24.9573, -53.459),
-    },
-    "São Mateus do Sul": {
-        "id": 7,
-        "coord": (-25.8687, -50.3841),
-    },
-    "Toledo": {
-        "id": 8,
-        "coord": (-24.7246, -53.7412),
-    },
-    "Araucária": {
-        "id": 9,
-        "coord": (-25.593, -49.4103),
-    },
-    "Foz do Iguaçú": {
-        "id": 10,
-        "coord": (-25.5469, -54.5882),
-    },
+    # Sudeste
+    "São Paulo":      {"id": 1, "coord": (-23.5505, -46.6333)},
+    "Rio de Janeiro": {"id": 2, "coord": (-22.9068, -43.1729)},
+    "Belo Horizonte": {"id": 3, "coord": (-19.9167, -43.9345)},
+    "Vitória":        {"id": 4, "coord": (-20.3194, -40.3378)},
+    "Campinas":       {"id": 5, "coord": (-22.9099, -47.0626)},
+    "Santos":         {"id": 6, "coord": (-23.9608, -46.3331)},
+    "Ribeirão Preto": {"id": 7, "coord": (-21.1767, -47.8103)},
+    "Uberlândia":     {"id": 8, "coord": (-18.9186, -48.2772)},
+    # Sul
+    "Curitiba":       {"id": 9, "coord": (-25.4284, -49.2733)},
+    "Florianópolis":  {"id": 10, "coord": (-27.5954, -48.5480)},
+    "Porto Alegre":   {"id": 11, "coord": (-30.0346, -51.2177)},
+    "Joinville":      {"id": 12, "coord": (-26.3031, -48.8456)},
+    "Londrina":       {"id": 13, "coord": (-23.3103, -51.1628)},
+    "Cascavel":       {"id": 14, "coord": (-24.9573, -53.4590)},
+    "Caxias do Sul":  {"id": 15, "coord": (-29.1678, -51.1789)},
 }
 
+# Principais conexões rodoviárias (arestas do grafo)
 roads = [
-    ("Curitiba", "Araucária"),
-    ("Curitiba", "Ponta Grossa"),
-    ("Araucária", "Ponta Grossa"),
-    ("Ponta Grossa", "São Mateus do Sul"),
-    ("Ponta Grossa", "Manoel Ribas"),
-    ("Manoel Ribas", "Maringa"),
-    ("Maringa", "Londrina"),
-    ("Maringa", "Cascavel"),
-    ("Cascavel", "Toledo"),
-    ("Toledo", "Foz do Iguaçú"),
+    # Conexões em SP e arredores
+    ("São Paulo", "Santos"),
+    ("São Paulo", "Campinas"),
+    ("São Paulo", "Curitiba"),
+    ("São Paulo", "Rio de Janeiro"),
+    ("Campinas", "Ribeirão Preto"),
+    ("Ribeirão Preto", "Uberlândia"),
+    # Conexões Eixo Sudeste
+    ("São Paulo", "Belo Horizonte"),
+    ("Rio de Janeiro", "Belo Horizonte"),
+    ("Rio de Janeiro", "Vitória"),
+    ("Belo Horizonte", "Vitória"),
+    ("Belo Horizonte", "Uberlândia"),
+    # Conexões para o Sul
+    ("Curitiba", "Joinville"),
+    ("Curitiba", "Londrina"),
+    ("Londrina", "Cascavel"),
+    ("Joinville", "Florianópolis"),
+    ("Florianópolis", "Porto Alegre"),
+    ("Porto Alegre", "Caxias do Sul"),
 ]
-
 def calculate_distance(coord1, coord2):
     return round(geodesic(coord1, coord2).km, 2)
 
@@ -67,9 +56,9 @@ def main():
     graph = Graph()
     # Mapeamento reverso de ID para Nome para facilitar a exibição
     id_to_name = {}
-    for key, value in coords.items():
-        graph.add_node(value["id"], key, value["coord"])
-        id_to_name[value["id"]] = key
+    for city, data in coords.items():
+        graph.add_node(data["id"], city, data["coord"])
+        id_to_name[data["id"]] = city
 
     for city1, city2 in roads:
         id1, id2 = coords[city1]["id"], coords[city2]["id"]
@@ -77,12 +66,12 @@ def main():
         graph.add_edge(id1, id2, dist)
 
     # Visualização do Grafo
-    graph.show("parana_roads.html")
-    print("Grafo de cidades do Paraná gerado em 'parana_roads.html'")
+    graph.show("logistica_sul_sudeste.html")
+    print("Grafo da malha logística gerado em 'logistica_sul_sudeste.html'")
 
-    # --- Execução e Comparação dos Algoritmos ---
-    start_city = "Curitiba"
-    goal_city = "Foz do Iguaçú"
+    # Primeiro Desafio Logístico
+    start_city = "Santos"
+    goal_city = "Caxias do Sul"
 
     start_id = coords[start_city]["id"]
     goal_id = coords[goal_city]["id"]
