@@ -105,15 +105,22 @@ def main():
 
     # --- Apresentação dos Resultados ---
     print("\n--- Tabela Comparativa de Resultados ---\n")
-    print(
-        f"{'Algoritmo':<15} | {'Custo (km)':<12} | {'Nós Expandidos':<16} | {'Tam. Máx. Fronteira':<20} | {'Caminho Encontrado'}")
-    print("-" * 120)
-
+    header = (
+        f"{'Algoritmo':<15} | {'Custo (km)':<12} | {'Nós Expandidos':<16} | "
+        f"{'Pico Memória (KiB)':<20} | {'Tempo CPU (s)':<15} | {'Caminho Encontrado'}"
+    )
+    print(header)
+    print("-" * len(header))
+    # Ordena os resultados pelo custo para facilitar a comparação
     for res in sorted(results, key=lambda x: x['cost']):
         path_names = " -> ".join([id_to_name[i] for i in res['path']])
-        print(
-            f"{res['name']:<15} | {res['cost']:<12.2f} | {res['nodes_expanded']:<16} | {res['max_frontier_size']:<20} | {path_names}")
 
+        # Formatação da linha de resultado
+        result_line = (
+            f"{res['name']:<15} | {res['cost']:<12.2f} | {res['nodes_expanded']:<16} | "
+            f"{res['memory_peak_kb']:<20.2f} | {res['cpu_time']:<15.6f} | {path_names}"
+        )
+        print(result_line)
 
 if __name__ == "__main__":
     main()
