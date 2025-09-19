@@ -4,8 +4,8 @@
 
 ## Utilização
 
-O aplicativo permite a execução do experimento de forma individualizada, escolhendo a estrutura de dados 
-a ser avaliada, permitindo a execução "paralela" dos experimentos em cada estrutura, bem como permite a
+O aplicativo permite a execução dos experimentos de forma individualizada, escolhendo a estrutura de dados 
+a ser avaliada (permitindo a execução "paralela" dos experimentos em cada estrutura), bem como a
 execução de todos os experimentos de maneira sequencial.
 
 Para executar todos os experimentos, execute o comando a seguir:
@@ -23,7 +23,6 @@ A execução dos experimentos resultará na geração de arquivos com as métric
 ``` 
 outputs/
 ├── avl_tree.csv
-├── experiment_df.csv
 ├── hash_distribution.csv
 ├── hash_table.csv
 ├── linear_array.csv
@@ -32,11 +31,12 @@ outputs/
 
 ## Análise e plotagem de gráficos
 
-Existindo os arquivos CSV com as métricas coletadas, é possível proceder à análise dos mesmos e geração 
+Uma vez gerados os arquivos CSV com as métricas coletadas, é possível proceder à análise dos mesmos e geração 
 dos gráficos, através do script Python analysis.py. Para tanto, execute:
 
 ``` 
 python analysis.py
 ```
 
-A execução produzirá os arquivo de imagem dentro da pasta charts_analysis.
+A execução produzirá os arquivo de imagem dentro da pasta charts_analysis, bem como do arquivo 
+complete_experiment_df.csv com as médias e desvios padrão de todas as métricas.

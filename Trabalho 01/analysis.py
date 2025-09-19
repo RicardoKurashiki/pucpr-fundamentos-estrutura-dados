@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import os
 import itertools
 
-# --- CONFIGURAÇÃO ---
+# CONFIGURAÇÃO INICIAL
 OUTPUT_PATH = './outputs/'
 CHARTS_PATH = os.path.join(OUTPUT_PATH, 'charts_analysis/')
 
@@ -16,7 +16,7 @@ BASE_ALGORITHMS = {
 }
 
 
-# --- FUNÇÕES DE CARREGAMENTO E AGREGAÇÃO ---
+# FUNÇÕES DE CARREGAMENTO E AGREGAÇÃO
 
 def load_all_data(path, algorithms):
     """
@@ -66,7 +66,7 @@ def aggregate_data(df):
     agg_df.columns = ['_'.join(col).strip() for col in agg_df.columns.values]
     return agg_df.reset_index()
 
-# --- FUNÇÕES DE PLOTAGEM ---
+# FUNÇÕES DE PLOTAGEM
 
 def plot_distribution_boxplots(path):
     """
@@ -100,10 +100,6 @@ def plot_distribution_boxplots(path):
         plt.ylabel('Tamanho do Bucket (Nº de Itens)', fontsize=12)
         plt.xlabel('Função de Hash', fontsize=12)
         plt.grid(True, axis='y', linestyle='--', alpha=0.6)
-
-        # Para melhorar a visualização de distribuições com muitos outliers
-        # podemos usar uma escala logarítmica, mas o boxplot já lida bem com isso.
-        # plt.yscale('log')
 
         filename = os.path.join(CHARTS_PATH, f"Boxplot_Distribution_N{size}_M{m_param}.png")
         plt.savefig(filename)
@@ -304,7 +300,6 @@ def plot_distribution_boxplot_evolution_grid(path, exclude_functions=None, suffi
     print(f"Gráfico em grade salvo: {filename}")
 
 
-
 def plot_comparison(df_agg, metric_mean, metric_std, title, ylabel, algorithms_to_plot, use_log_scale=False):
     """
     Gera um gráfico comparativo com a média (linha) e o desvio padrão (área sombreada).
@@ -353,8 +348,6 @@ def plot_comparison(df_agg, metric_mean, metric_std, title, ylabel, algorithms_t
     print(f"Gráfico salvo: {filename}")
 
 
-# --- BLOCO PRINCIPAL DE EXECUÇÃO ---
-
 if __name__ == "__main__":
     full_df = load_all_data(OUTPUT_PATH, BASE_ALGORITHMS)
 
@@ -366,18 +359,18 @@ if __name__ == "__main__":
         print("--- Tabela de Médias e Desvios Padrão ---")
         pd.set_option('display.max_rows', 100)
         print(aggregated_df.to_string())
-        aggregated_df.to_csv(f"{OUTPUT_PATH}/experiment_df.csv")
+        aggregated_df.to_csv(f"{OUTPUT_PATH}/complete_experiment_df.csv")
 
         print("\n--- Gerando Gráficos de Análise ---")
 
-        # --- LÓGICA PARA COMPARAÇÃO GERAL ---
+        # LÓGICA PARA COMPARAÇÃO GERAL
         general_comparison_algos = [
             BASE_ALGORITHMS['linear_array']['name'],
             BASE_ALGORITHMS['regular_tree']['name'],
             BASE_ALGORITHMS['avl_tree']['name'],
         ]
 
-        # Filtra os resultados da Hash Table para N=1,000,000
+        # Filtra os resultados da Hash Table para N=1,000,000 - vamos avaliar para o caso mais crítico
         hash_results_for_best = aggregated_df[
             (aggregated_df['Algorithm'].str.contains('Hash Table')) &
             (aggregated_df['Size'] == 1000000)
@@ -437,23 +430,23 @@ if __name__ == "__main__":
         # if os.path.exists(os.path.join(OUTPUT_PATH, 'hash_distribution.csv')):
         #     print("\n--- Gerando Histogramas de Distribuição da Tabela Hash ---")
         #     plot_distribution_histograms(OUTPUT_PATH, aggregated_df)
-        # if os.path.exists(os.path.join(OUTPUT_PATH, 'hash_distribution.csv')):
-        #     print("\n--- Gerando Boxplots de Distribuição da Tabela Hash ---")
-        #     plot_distribution_boxplots(OUTPUT_PATH)
+        if os.path.exists(os.path.join(OUTPUT_PATH, 'hash_distribution.csv')):
+            print("\n--- Gerando Boxplots de Distribuição da Tabela Hash ---")
+            plot_distribution_boxplots(OUTPUT_PATH)
         if os.path.exists(os.path.join(OUTPUT_PATH, 'hash_distribution.csv')):
             print("\n--- Gerando Gráficos Consolidados (Boxplot Grid) da Tabela Hash ---")
             plot_distribution_boxplots_grid(OUTPUT_PATH)
         # if os.path.exists(os.path.join(OUTPUT_PATH, 'hash_distribution.csv')):
         #     print("\n--- Gerando Gráficos Consolidados (Boxplot Evolution Grid) da Tabela Hash ---")
         #     plot_distribution_boxplot_evolution_grid(OUTPUT_PATH)
-        # if os.path.exists(os.path.join(OUTPUT_PATH, 'hash_distribution.csv')):
-        #     print("\n--- Gerando Gráficos Consolidados da Tabela Hash ---")
-        #
-        #     # 1. Gera o gráfico completo com todos os dados
-        #     plot_distribution_boxplot_evolution_grid(OUTPUT_PATH, suffix=" (Completo)")
-        #
-        #     # 2. Gera o gráfico "Showcase", excluindo a função 'folding'
-        #     plot_distribution_boxplot_evolution_grid(OUTPUT_PATH, exclude_functions=['folding'], suffix=" (Showcase)")
+        if os.path.exists(os.path.join(OUTPUT_PATH, 'hash_distribution.csv')):
+            print("\n--- Gerando Gráficos Consolidados da Tabela Hash ---")
+
+            # 1. Gera o gráfico completo com todos os dados
+            plot_distribution_boxplot_evolution_grid(OUTPUT_PATH, suffix=" (Completo)")
+
+            # 2. Gera o gráfico "Showcase", excluindo a função 'folding'
+            plot_distribution_boxplot_evolution_grid(OUTPUT_PATH, exclude_functions=['folding'], suffix=" (Showcase)")
 
         # Métrica de altura da árvore
         tree_configs = sorted(
@@ -462,7 +455,6 @@ if __name__ == "__main__":
         plot_comparison(aggregated_df,
                         'Tree Height_mean', 'Tree Height_std',
                         'Arvores Binárias - Eficiência Estrutural (Altura)', 'Altura da Árvore', tree_configs)
-
 
 
         print("\nAnálise concluída!")

@@ -60,6 +60,9 @@ def compute_and_log_metrics(metrics, name, iteration, size):
 
 
 def linear_array_test(data):
+    """
+    Executa os testes com Array Linear
+    """
     print(f"Inserting {len(data)} into Linear Array")
     metrics = {}  # dicionário para coleta das métricas
     # Objeto Process que representa o nosso script atual
@@ -87,7 +90,7 @@ def linear_array_test(data):
     ) + (cpu_after_insert.system - cpu_before_insert.system)
     metrics["Total Insertion Steps"] = total_insert_steps
 
-    # --- BUSCA POR AMOSTRAGEM ---
+    # BUSCA POR AMOSTRAGEM
     # Definimos o tamanho da amostra como 1% do total de dados.
     # Usamos max(1, ...) para garantir que, mesmo para N muito pequeno, testamos pelo menos 1 elemento.
     #sample_percent = 0.01
@@ -118,6 +121,9 @@ def linear_array_test(data):
 
 
 def test_avltree_lifecycle(data):
+    """
+    Executa os testes com Árvore Binária Balanceada
+    """
     print(f"Inserting {len(data)} into AVL Tree")
     metrics = {}  # dicionário para coleta das métricas
     # Objeto Process que representa o nosso script atual
@@ -148,7 +154,7 @@ def test_avltree_lifecycle(data):
         metrics["Tree Height"] = tree.root.height
         metrics["Total Insertion Steps"] = total_insert_steps
 
-    # --- FASE 2: BUSCA POR AMOSTRAGEM ---
+    # FASE 2: BUSCA POR AMOSTRAGEM
 
     total_depth_for_one_run = 0
     max_depth_for_one_run = 0
@@ -174,7 +180,6 @@ def test_avltree_lifecycle(data):
                 total_depth_for_one_run += search_metrics["Search Steps"]
                 max_depth_for_one_run = max(max_depth_for_one_run, search_metrics["Search Steps"])
 
-
     cpu_after_search = process.cpu_times()
 
     # Coleta de métricas da Fase 2
@@ -187,8 +192,10 @@ def test_avltree_lifecycle(data):
 
     return metrics
 
-
 def test_unbaltree_lifecycle(data):
+    """
+    Executa os testes com Árvore Binária Desbalanceada
+    """
     print(f"Inserting {len(data)} into Unbalanced Tree")
     metrics = {}  # dicionário para coleta das métricas
     # Objeto Process que representa o nosso script atual
@@ -218,7 +225,7 @@ def test_unbaltree_lifecycle(data):
         metrics["Tree Height"] = tree.root.height
         metrics["Total Insertion Steps"] = total_insert_steps
 
-    # --- FASE 2: BUSCA POR AMOSTRAGEM ---
+    # FASE 2: BUSCA POR AMOSTRAGEM
     total_depth_for_one_run = 0
     max_depth_for_one_run = 0
     # Definimos o tamanho da amostra como 1% do total de dados.
@@ -253,9 +260,10 @@ def test_unbaltree_lifecycle(data):
 
     return metrics
 
-
 def hash_test(data, m, hash_function):
-
+    """
+    Executa os testes com Hash Tables
+    """
     print(f"Inserting {len(data)} into {hash_function} Hash Table ({m})")
     metrics = {}  # dicionário para coleta das métricas
     # Objeto Process que representa o nosso script atual
@@ -288,7 +296,7 @@ def hash_test(data, m, hash_function):
     structural_metrics = hash_table.get_structural_metrics()
     metrics.update(structural_metrics)
 
-    # --- FASE 2: BUSCA POR AMOSTRAGEM ---
+    # FASE 2: BUSCA POR AMOSTRAGEM
     cpu_before_search = process.cpu_times()
 
     total_search_steps = 0
@@ -329,14 +337,6 @@ def hash_test(data, m, hash_function):
     value_counts.to_csv(dist_filename, mode='a', header=not file_exists, index=False)
 
     return metrics
-
-    # EXEMPLO DE EXTENSIBILIDADE:
-    # Suponha que o search da HashTable retorne o número de colisões encontradas
-    # _, metrics = hash_table.search(data[len(data) // 2][0])
-    # return metrics # -> retornaria algo como {'Collisions': 1}
-
-    # Por enquanto, não faremos isso
-    # hash_table.search(data[len(data) // 2][0])
 
 
 def plot_data_comparison(
