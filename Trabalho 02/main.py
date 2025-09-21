@@ -151,7 +151,7 @@ def main():
         graph.add_node(data["id"], city, data["coord"])
         id_to_name[data["id"]] = city
 
-    build_road_network(graph, coords, neighbors_count=4)
+    build_road_network(graph, coords, neighbors_count=3)
 
     # Visualização do Grafo
     graph.show("logistica_brasil.html")
@@ -159,7 +159,7 @@ def main():
 
     # Primeiro Desafio Logístico
     start_city = "Manaus"
-    goal_city = "Porto Alegre"
+    goal_city = "Curitiba"
 
     start_id = coords[start_city]["id"]
     goal_id = coords[goal_city]["id"]
@@ -180,7 +180,8 @@ def main():
         cpu_total_time = 0
         for i in range(iterations):
             result = algorithm_func(graph, start_id, goal_id)
-            cpu_total_time += result['cpu_time']
+            if result:
+                cpu_total_time += result['cpu_time']
         if result:
             result['cpu_time'] = cpu_total_time/iterations
             results.append(result)
@@ -188,7 +189,7 @@ def main():
     # --- Apresentação dos Resultados ---
     print("\n--- Tabela Comparativa de Resultados ---\n")
     header = (
-        f"{'Algoritmo':<15} | {'Custo (km)':<12} | {'Nós Expandidos':<16} | "
+        f"{'Algoritmo':<15} | {'Custo (km)':<12} | {'Nós Expandidos':<16} | {'Arestas Avaliadas':<20} | "
         f"{'Pico Memória (KiB)':<20} | {'Tempo CPU (s)':<15} | {'Caminho Encontrado'}"
     )
     print(header)
@@ -199,7 +200,7 @@ def main():
 
         # Formatação da linha de resultado
         result_line = (
-            f"{res['name']:<15} | {res['cost']:<12.2f} | {res['nodes_expanded']:<16} | "
+            f"{res['name']:<15} | {res['cost']:<12.2f} | {res['nodes_expanded']:<16} | {res['edges_evaluated']:<20} | "
             f"{res['memory_peak_kb']:<20.2f} | {res['cpu_time']:<15.9f} | {path_names}"
         )
         print(result_line)

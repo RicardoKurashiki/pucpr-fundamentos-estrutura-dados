@@ -60,6 +60,7 @@ def dijkstra(graph, start_id, goal_id):
 
     # Métricas
     nodes_expanded = 0
+    edges_evaluated = 0
     max_frontier_size = 1
 
     path_found = None  # Variável para guardar o resultado
@@ -83,6 +84,7 @@ def dijkstra(graph, start_id, goal_id):
         # 3. Explorar Vizinhos
         # Para cada vizinho conectado ao nó atual...
         for neighbor_id in graph.get_neighbors(current_id):
+            edges_evaluated += 1  # Conta a avaliação de uma aresta
             # Calcula o custo para chegar neste vizinho através do nó ATUAL.
             new_cost = cost_so_far[current_id] + graph.get_edge_weight(current_id, neighbor_id)
 
@@ -109,7 +111,8 @@ def dijkstra(graph, start_id, goal_id):
     if path_found:
         return {
             "name": "Dijkstra", "path": path_found, "cost": round(cost_so_far[goal_id], 2),
-            "nodes_expanded": nodes_expanded, "max_frontier_size": max_frontier_size,
+            "nodes_expanded": nodes_expanded, "edges_evaluated": edges_evaluated,
+            "max_frontier_size": max_frontier_size,
             "cpu_time": cpu_time, "memory_peak_kb": memory_peak_kb
         }
     return None  # Se o loop terminar e não encontrarmos o objetivo, não há caminho.
@@ -135,6 +138,7 @@ def greedy_search(graph, start_id, goal_id):
     visited = {start_id}  # Usamos um 'visited' simples pois não precisamos re-visitar nós.
 
     nodes_expanded = 0
+    edges_evaluated = 0
     max_frontier_size = 1
 
     path_found = None
@@ -152,6 +156,7 @@ def greedy_search(graph, start_id, goal_id):
 
         # 3. Explorar Vizinhos
         for neighbor_id in graph.get_neighbors(current_id):
+            edges_evaluated += 1  # Conta a avaliação de uma aresta
             if neighbor_id not in visited:
                 visited.add(neighbor_id)
                 came_from[neighbor_id] = current_id
@@ -171,7 +176,8 @@ def greedy_search(graph, start_id, goal_id):
         cost = sum(graph.get_edge_weight(path_found[i], path_found[i + 1]) for i in range(len(path_found) - 1))
         return {
             "name": "Greedy Search", "path": path_found, "cost": round(cost, 2),
-            "nodes_expanded": nodes_expanded, "max_frontier_size": max_frontier_size,
+            "nodes_expanded": nodes_expanded, "edges_evaluated": edges_evaluated,
+            "max_frontier_size": max_frontier_size,
             "cpu_time": cpu_time, "memory_peak_kb": memory_peak_kb
         }
     return None
@@ -204,6 +210,7 @@ def a_star(graph, start_id, goal_id):
     g_score[start_id] = 0
 
     nodes_expanded = 0
+    edges_evaluated = 0
     max_frontier_size = 1
 
     path_found = None
@@ -221,6 +228,7 @@ def a_star(graph, start_id, goal_id):
 
         # 3. Explorar Vizinhos
         for neighbor_id in graph.get_neighbors(current_id):
+            edges_evaluated += 1  # Conta a avaliação de uma aresta
             # O cálculo do g_score (custo para chegar no vizinho) é igual ao do Dijkstra.
             tentative_g_score = g_score[current_id] + graph.get_edge_weight(current_id, neighbor_id)
 
@@ -247,7 +255,8 @@ def a_star(graph, start_id, goal_id):
     if path_found:
         return {
             "name": "A* Search", "path": path_found, "cost": round(g_score[goal_id], 2),
-            "nodes_expanded": nodes_expanded, "max_frontier_size": max_frontier_size,
+            "nodes_expanded": nodes_expanded, "edges_evaluated": edges_evaluated,
+            "max_frontier_size": max_frontier_size,
             "cpu_time": cpu_time, "memory_peak_kb": memory_peak_kb
         }
     return None
@@ -269,6 +278,7 @@ def depth_first_search(graph, start_id, goal_id):
     visited = {start_id}
 
     nodes_expanded = 0
+    edges_evaluated = 0
     max_frontier_size = 1
 
     path_found = None
@@ -283,6 +293,7 @@ def depth_first_search(graph, start_id, goal_id):
             break
 
         for neighbor_id in graph.get_neighbors(current_id):
+            edges_evaluated += 1
             if neighbor_id not in visited:
                 visited.add(neighbor_id)
                 # Adiciona o vizinho no topo da pilha. Ele será o próximo a ser explorado.
@@ -299,7 +310,8 @@ def depth_first_search(graph, start_id, goal_id):
         cost = sum(graph.get_edge_weight(path_found[i], path_found[i+1]) for i in range(len(path_found) - 1))
         return {
             "name": "DFS", "path": path_found, "cost": round(cost, 2),
-            "nodes_expanded": nodes_expanded, "max_frontier_size": max_frontier_size,
+            "nodes_expanded": nodes_expanded, "edges_evaluated": edges_evaluated,
+            "max_frontier_size": max_frontier_size,
             "cpu_time": cpu_time, "memory_peak_kb": memory_peak_kb
         }
     return None
@@ -321,6 +333,7 @@ def breadth_first_search(graph, start_id, goal_id):
     visited = {start_id}
 
     nodes_expanded = 0
+    edges_evaluated = 0
     max_frontier_size = 1
 
     path_found = None
@@ -335,6 +348,7 @@ def breadth_first_search(graph, start_id, goal_id):
             break
 
         for neighbor_id in graph.get_neighbors(current_id):
+            edges_evaluated += 1  # Conta a avaliação de uma aresta
             if neighbor_id not in visited:
                 visited.add(neighbor_id)
                 # Adiciona o vizinho no final da fila. Ele só será explorado depois de todos
@@ -352,7 +366,8 @@ def breadth_first_search(graph, start_id, goal_id):
         cost = sum(graph.get_edge_weight(path_found[i], path_found[i + 1]) for i in range(len(path_found) - 1))
         return {
             "name": "BFS", "path": path_found, "cost": round(cost, 2),
-            "nodes_expanded": nodes_expanded, "max_frontier_size": max_frontier_size,
+            "nodes_expanded": nodes_expanded, "edges_evaluated": edges_evaluated,
+            "max_frontier_size": max_frontier_size,
             "cpu_time": cpu_time, "memory_peak_kb": memory_peak_kb
         }
     return None
