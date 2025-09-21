@@ -47,15 +47,23 @@ class Graph:
     def get_edge_weight(self, node_id_1: int, node_id_2: int) -> float:
         """Retorna o peso da aresta entre dois nós."""
         for edge in self.edges:
-            if (edge.id_1 == node_id_1 and edge.id_2 == node_id_2) or \
-               (edge.id_1 == node_id_2 and edge.id_2 == node_id_1):
+            if (edge.id_1 == node_id_1 and edge.id_2 == node_id_2) or (
+                edge.id_1 == node_id_2 and edge.id_2 == node_id_1
+            ):
                 return edge.weight
-        return float('inf') # Retorna infinito se não houver conexão direta
+        return float("inf")  # Retorna infinito se não houver conexão direta
 
     def show(self, filename: str = "net.html"):
-        net = Network(height="750px", width="100%", bgcolor="#222222", font_color="white")
+        net = Network(
+            height="95vh", width="100%", bgcolor="#222222", font_color="white"
+        )
         for node in self.nodes:
-            net.add_node(node.id, node.name)
+            # Transforma lat e lon em x e y
+            # Coordenadas geográficas: (latitude, longitude)
+            # Para o pyvis: x = longitude, y = -latitude (invertido para corrigir orientação)
+            x = node.coord[1]  # longitude
+            y = -node.coord[0]  # -latitude (invertido para sul ficar embaixo)
+            net.add_node(node.id, node.name, x=x, y=y)
         for edge in self.edges:
             net.add_edge(
                 edge.id_1,
@@ -64,4 +72,3 @@ class Graph:
                 label=f"{edge.weight} km",
             )
         net.save_graph(filename)
-
