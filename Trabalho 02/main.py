@@ -157,17 +157,18 @@ def build_road_network(graph, coords_dict, strategic_connections, neighbors_coun
     existing_edges = set()
 
     # 1. Adiciona as conexões estratégicas primeiro
-    for city1_name, city2_name in strategic_connections:
-        id1 = coords_dict[city1_name]["id"]
-        id2 = coords_dict[city2_name]["id"]
-        coord1 = coords_dict[city1_name]["coord"]
-        coord2 = coords_dict[city2_name]["coord"]
-        dist = calculate_distance(coord1, coord2)
+    if strategic_connections:
+        for city1_name, city2_name in strategic_connections:
+            id1 = coords_dict[city1_name]["id"]
+            id2 = coords_dict[city2_name]["id"]
+            coord1 = coords_dict[city1_name]["coord"]
+            coord2 = coords_dict[city2_name]["coord"]
+            dist = calculate_distance(coord1, coord2)
 
-        edge_tuple = tuple(sorted((id1, id2)))
-        if edge_tuple not in existing_edges:
-            graph.add_edge(id1, id2, round(dist, 2))
-            existing_edges.add(edge_tuple)
+            edge_tuple = tuple(sorted((id1, id2)))
+            if edge_tuple not in existing_edges:
+                graph.add_edge(id1, id2, round(dist, 2))
+                existing_edges.add(edge_tuple)
 
     city_names = list(coords_dict.keys())
     for city1_name in city_names:
@@ -214,7 +215,8 @@ def main():
         graph.add_node(data["id"], city, data["coord"])
         id_to_name[data["id"]] = city
 
-    build_road_network(graph, coords, strategic_roads, neighbors_count=3)
+    #build_road_network(graph, coords, strategic_roads, neighbors_count=3)
+    build_road_network(graph, coords, None, neighbors_count=3)
 
     # Garante que existe a pasta de saída, caso ela não exista
     os.makedirs(output_dir, exist_ok=True)
