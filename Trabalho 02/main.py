@@ -111,19 +111,65 @@ coords = {
     "Vitória": {"id": 101, "coord": (-20.3194, -40.3378)},
 }
 
+# Garante que as principais "artérias" do país existam no grafo.
+strategic_roads = [
+    # Eixo Sudest-Sul
+    ("São Paulo", "Rio de Janeiro"),       # Via Dutra
+    ("São Paulo", "Belo Horizonte"),      # Fernão Dias
+    ("São Paulo", "Curitiba"),            # Régis Bittencourt
+    ("Rio de Janeiro", "Belo Horizonte"), # BR-040
+    ("Rio de Janeiro", "Vitória"),        # BR-101
+    ("Curitiba", "Florianópolis"),  # BR-101 Sul
+    ("Florianópolis", "Porto Alegre"),
+
+    # Eixo Centro-Oeste
+    ("Brasília", "Goiânia"),
+    ("Brasília", "Belo Horizonte"),
+    ("Cuiabá", "Campo Grande"),
+
+    # Litoral Nordeste
+    ("Aracaju", "Salvador"),              # BR-101 Norte
+    ("Recife", "Maceió"),                 # BR-101 Norte
+    ("Salvador", "Aracaju"),
+    ("Maceió", "Recife"),                # BR-101 Norte
+    ("Maceió", "Aracaju"),                # BR-101 Norte
+    ("Recife", "João Pessoa"),                # BR-101 Norte
+    ("João Pessoa", "Natal"),                # BR-101 Norte
+    ("Brasília", "Salvador"),
+    ("Salvador", "Recife"),
+    ("Recife", "Fortaleza"),
+
+    # Conexão Centro-Oeste -> Nordeste
+    ("Brasília", "Teresina"),             # BR-020
+    ("Teresina", "Fortaleza"),            # BR-020
+]
+
 def calculate_distance(coord1, coord2):
     return round(geodesic(coord1, coord2).km, 2)
 
-
-def build_road_network(graph, coords_dict, neighbors_count=4):
+def build_road_network(graph, coords_dict, strategic_connections, neighbors_count=3):
     """
-    Constrói a malha rodoviária conectando cada cidade às suas N vizinhas mais próximas.
+    Constrói a malha rodoviária usando uma abordagem híbrida:
+    1. Adiciona conexões estratégicas manuais.
+    2. Conecta cada cidade às suas N vizinhas mais próximas.
     """
-    city_names = list(coords_dict.keys())
-
     # Usamos um set para evitar adicionar arestas duplicadas (A->B e B->A com o mesmo peso)
     existing_edges = set()
 
+    # 1. Adiciona as conexões estratégicas primeiro
+    for city1_name, city2_name in strategic_connections:
+        id1 = coords_dict[city1_name]["id"]
+        id2 = coords_dict[city2_name]["id"]
+        coord1 = coords_dict[city1_name]["coord"]
+        coord2 = coords_dict[city2_name]["coord"]
+        dist = calculate_distance(coord1, coord2)
+
+        edge_tuple = tuple(sorted((id1, id2)))
+        if edge_tuple not in existing_edges:
+            graph.add_edge(id1, id2, round(dist, 2))
+            existing_edges.add(edge_tuple)
+
+    city_names = list(coords_dict.keys())
     for city1_name in city_names:
         distances = []
         for city2_name in city_names:
@@ -168,7 +214,7 @@ def main():
         graph.add_node(data["id"], city, data["coord"])
         id_to_name[data["id"]] = city
 
-    build_road_network(graph, coords, neighbors_count=4)
+    build_road_network(graph, coords, strategic_roads, neighbors_count=3)
 
     # Garante que existe a pasta de saída, caso ela não exista
     os.makedirs(output_dir, exist_ok=True)
