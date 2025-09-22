@@ -215,8 +215,9 @@ def main():
         graph.add_node(data["id"], city, data["coord"])
         id_to_name[data["id"]] = city
 
-    #build_road_network(graph, coords, strategic_roads, neighbors_count=3)
-    build_road_network(graph, coords, None, neighbors_count=3)
+    build_road_network(graph, coords, strategic_roads, neighbors_count=3)
+    # Versão 100% programática, passando None no lugar das rodovias estratégicas "reais"
+    # build_road_network(graph, coords, None, neighbors_count=3)
 
     # Garante que existe a pasta de saída, caso ela não exista
     os.makedirs(output_dir, exist_ok=True)
