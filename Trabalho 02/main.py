@@ -1,4 +1,6 @@
 from geopy.distance import geodesic
+import os
+import pandas as pd
 import numpy as np
 from graph import Graph
 from algorithms import dijkstra, greedy_search, a_star, depth_first_search, breadth_first_search
@@ -106,6 +108,7 @@ coords = {
     "Ipatinga": {"id": 98, "coord": (-19.4678, -42.5281)},
     "Juazeiro do Norte": {"id": 99, "coord": (-7.2128, -39.3158)},
     "Palmas": {"id": 100, "coord": (-10.1844, -48.3336)},
+    "Vitória": {"id": 101, "coord": (-20.3194, -40.3378)},
 }
 
 def calculate_distance(coord1, coord2):
@@ -145,7 +148,19 @@ def build_road_network(graph, coords_dict, neighbors_count=4):
                 existing_edges.add(edge_tuple)
 
 def main():
+    # Parâmetros
     ITERATIONS = 40  # Necessário para conseguir medir o tempo de execução da CPU, através da média dessas execuções. Uma única execução retorno 0.000 para a maioria dos algoritmos
+    output_dir = "outputs"
+
+    # Lista de desafios logísticos
+    challenges = [
+        {"name": "Norte_Sul", "origin": "Manaus", "destination": "Porto Alegre"},
+        {"name": "Litoral", "origin": "Fortaleza", "destination": "Rio de Janeiro"},
+        {"name": "Leste_Oeste", "origin": "Rio Branco", "destination": "João Pessoa"},
+        {"name": "Centro_Sudeste", "origin": "Campo Grande", "destination": "Vitória"},
+        {"name": "Vale_do_Paraiba", "origin": "São José dos Campos", "destination": "Niterói"},
+    ]
+
     graph = Graph()
     # Mapeamento reverso de ID para Nome para facilitar a exibição
     id_to_name = {}
@@ -153,94 +168,140 @@ def main():
         graph.add_node(data["id"], city, data["coord"])
         id_to_name[data["id"]] = city
 
-    build_road_network(graph, coords, neighbors_count=3)
+    build_road_network(graph, coords, neighbors_count=4)
 
-    # Visualização do Grafo
-    graph.show("logistica_brasil.html")
-    print("Grafo da malha logística nacional gerado em 'logistica_brasil.html'")
+    # Garante que existe a pasta de saída, caso ela não exista
+    os.makedirs(output_dir, exist_ok=True)
 
-    # Primeiro Desafio Logístico
-    start_city = "Manaus"
-    goal_city = "Curitiba"
+    # Visualização do Grafo geral, apenas uma vez
+    geral_map_filename = os.path.join(output_dir, "logistica_brasil_malha_completa.html")
+    graph.show(geral_map_filename)
+    print(f"Grafo da malha logística nacional gerado em '{geral_map_filename}'")
 
-    start_id = coords[start_city]["id"]
-    goal_id = coords[goal_city]["id"]
+    all_challenges_summary = []  # Lista para acumular todos os resultados
 
-    print(f"\nBuscando a melhor rota de '{start_city}' para '{goal_city}'...")
+    # Loop Principal sobre os Desafios
+    for challenge in challenges:
+        challenge_name = challenge["name"]
+        start_city = challenge["origin"]
+        goal_city = challenge["destination"]
 
-    algorithms_to_run = [
-        dijkstra,
-        a_star,
-        greedy_search,
-        breadth_first_search,
-        depth_first_search
-    ]
+        start_id = coords[start_city]["id"]
+        goal_id = coords[goal_city]["id"]
 
-    # Estrutura para acumular os resultados
-    aggregated_results = {func.__name__: {"cpu_times": [], "memory_peaks": []} for func in algorithms_to_run}
-    # Armazena os resultados determinísticos da primeira execução
-    deterministic_results = {}
+        #print(f"\nBuscando a melhor rota de '{start_city}' para '{goal_city}'...")
+        print(f"\n\n=======================================================================================")
+        print(f"--- EXECUTANDO DESAFIO: {challenge_name} ({start_city} -> {goal_city}) ---")
+        print(f"=======================================================================================")
+        print(f"Cada algoritmo será executado {ITERATIONS} vezes para análise estatística.\n")
 
-    for i in range(ITERATIONS):
-        print(f"Executando rodada {i + 1}/{ITERATIONS}...")
-        for algorithm_func in algorithms_to_run:
-            result = algorithm_func(graph, start_id, goal_id)
-            if result:
-                # Acumula as métricas de performance
-                aggregated_results[algorithm_func.__name__]["cpu_times"].append(result["cpu_time"])
-                aggregated_results[algorithm_func.__name__]["memory_peaks"].append(result["memory_peak_kb"])
+        algorithms_to_run = [
+            dijkstra,
+            a_star,
+            greedy_search,
+            breadth_first_search,
+            depth_first_search
+        ]
 
-                # Na primeira rodada, salva os resultados que não mudam
-                if i == 0:
-                    deterministic_results[algorithm_func.__name__] = result
+        # Estrutura para acumular os resultados
+        aggregated_results = {func.__name__: {"cpu_times": [], "memory_peaks": []} for func in algorithms_to_run}
+        # Armazena os resultados determinísticos da primeira execução
+        deterministic_results = {}
 
-    # --- Pós-processamento e Cálculo das Estatísticas ---
-    summary_results = []
-    for func in algorithms_to_run:
-        algo_name = func.__name__
-        if algo_name in deterministic_results:
-            det_res = deterministic_results[algo_name]
-            agg_res = aggregated_results[algo_name]
+        for i in range(ITERATIONS):
+            print(f"   Executando rodada {i + 1}/{ITERATIONS}...")
+            for algorithm_func in algorithms_to_run:
+                result = algorithm_func(graph, start_id, goal_id)
+                if result:
+                    # Acumula as métricas de performance
+                    aggregated_results[algorithm_func.__name__]["cpu_times"].append(result["cpu_time"])
+                    aggregated_results[algorithm_func.__name__]["memory_peaks"].append(result["memory_peak_kb"])
 
-            # Calcula média e desvio padrão (stdev)
-            mean_cpu = np.mean(agg_res["cpu_times"])
-            stdev_cpu = np.std(agg_res["cpu_times"])
+                    # Na primeira rodada, salva os resultados que não mudam
+                    if i == 0:
+                        deterministic_results[algorithm_func.__name__] = result
 
-            mean_mem = np.mean(agg_res["memory_peaks"])
-            stdev_mem = np.std(agg_res["memory_peaks"])
+        # Pós-processamento e Cálculo das Estatísticas
+        summary_results = []
+        for func in algorithms_to_run:
+            algo_name = func.__name__
+            if algo_name in deterministic_results:
+                det_res = deterministic_results[algo_name]
+                agg_res = aggregated_results[algo_name]
 
-            summary_results.append({
-                "name": det_res["name"],
-                "cost": det_res["cost"],
-                "nodes_expanded": det_res["nodes_expanded"],
-                "edges_evaluated": det_res["edges_evaluated"],
-                "path": det_res["path"],
-                "mean_cpu": mean_cpu,
-                "stdev_cpu": stdev_cpu,
-                "mean_mem": mean_mem,
-                "stdev_mem": stdev_mem,
-            })
+                # Calcula média e desvio padrão (stdev)
+                mean_cpu = np.mean(agg_res["cpu_times"])
+                stdev_cpu = np.std(agg_res["cpu_times"])
 
-    # --- Apresentação dos Resultados ---
-    print("\n--- Tabela Comparativa de Resultados ---\n")
-    header = (
-        f"{'Algoritmo':<15} | {'Custo (km)':<12} | {'Nós Expandidos':<16} | {'Arestas Avaliadas':<20} | "
-        f"{'Pico Memória (μ ± σ KiB)':<28} | {'Tempo CPU (μ ± σ s)':<25} | {'Caminho Encontrado'}"
-    )
-    print(header)
-    print("-" * (len(header)+10))
-    # Ordena os resultados pelo custo para facilitar a comparação
-    for res in sorted(summary_results, key=lambda x: x['cost']):
-        path_names = " -> ".join([id_to_name[i] for i in res['path']])
+                mean_mem = np.mean(agg_res["memory_peaks"])
+                stdev_mem = np.std(agg_res["memory_peaks"])
 
-        mem_stats_str = f"{res['mean_mem']:.2f} ± {res['stdev_mem']:.2f}"
-        cpu_stats_str = f"{res['mean_cpu']:.6f} ± {res['stdev_cpu']:.6f}"
-        # Formatação da linha de resultado
-        result_line = (
-            f"{res['name']:<15} | {res['cost']:<12.2f} | {res['nodes_expanded']:<16} | {res['edges_evaluated']:<20} | "
-            f"{mem_stats_str:<28} | {cpu_stats_str:<25} | {path_names}"
+                # Adiciona o desafio atual ao dicionário de resultado
+                summary = {
+                    "algoritmo": det_res["name"],
+                    "custo_km": det_res["cost"],
+                    "nos_expandidos": det_res["nodes_expanded"],
+                    "arestas_avaliadas": det_res["edges_evaluated"],
+                    "caminho": det_res["path"],
+                    "cpu_media": mean_cpu, "cpu_desvio_padrao": stdev_cpu,
+                    "memoria_media_kib": mean_mem, "memoria_desvio_padrao": stdev_mem,
+                }
+                summary_results.append(summary)
+
+                # Prepara os dados para o CSV final
+                summary_for_csv = summary.copy()
+                summary_for_csv["desafio"] = challenge_name
+                summary_for_csv["origem"] = start_city
+                summary_for_csv["destino"] = goal_city
+                summary_for_csv["caminho_str"] = " -> ".join([id_to_name[i] for i in det_res['path']])
+                del summary_for_csv["caminho"]  # Remove a lista de IDs do dicionário do CSV
+                # Acumula os resultados na lista geral
+                all_challenges_summary.append(summary_for_csv)
+
+        # --- Apresentação dos Resultados ---
+        print("\n--- Tabela Comparativa de Resultados ---\n")
+        header = (
+            f"{'Algoritmo':<15} | {'Custo (km)':<12} | {'Nós Expandidos':<16} | {'Arestas Avaliadas':<20} | "
+            f"{'Pico Memória (μ ± σ KiB)':<28} | {'Tempo CPU (μ ± σ s)':<25} | {'Caminho Encontrado'}"
         )
-        print(result_line)
+        print(header)
+        print("-" * (len(header)+10))
+        # Ordena os resultados pelo custo para facilitar a comparação
+        for res in sorted(summary_results, key=lambda x: x['custo_km']):
+            path_names = " -> ".join([id_to_name[i] for i in res['caminho']])
+
+            mem_stats_str = f"{res['memoria_media_kib']:.2f} ± {res['memoria_desvio_padrao']:.2f}"
+            cpu_stats_str = f"{res['cpu_media']:.6f} ± {res['cpu_desvio_padrao']:.6f}"
+            # Formatação da linha de resultado
+            result_line = (
+                f"{res['algoritmo']:<15} | {res['custo_km']:<12.2f} | {res['nos_expandidos']:<16} | {res['arestas_avaliadas']:<20} | "
+                f"{mem_stats_str:<28} | {cpu_stats_str:<25} | {path_names}"
+            )
+            print(result_line)
+
+            # Ajusta o nome do algoritmo para criar um nome de arquivo válido
+            algo_filename = res['algoritmo'].replace(' ', '_').replace('*', 'Star')
+            output_filename = os.path.join(output_dir, f"caminho_{challenge_name}_{algo_filename}.html")
+            # Chama o metodo para gerar o arquivo HTML com o caminho destacado
+            graph.show_path(res['caminho'], filename=output_filename)
+
+        # --- Exportação Final para CSV ---
+        if all_challenges_summary:
+            print("\n\nExportando resultados consolidados para CSV...")
+            df = pd.DataFrame(all_challenges_summary)
+
+            # Reordena as colunas para melhor legibilidade
+            column_order = [
+                'desafio', 'origem', 'destino', 'algoritmo', 'custo_km', 'nos_expandidos',
+                'arestas_avaliadas', 'cpu_media', 'cpu_desvio_padrao', 'memoria_media_kib',
+                'memoria_desvio_padrao', 'caminho_str'
+            ]
+            df = df[column_order]
+
+            csv_filename = os.path.join(output_dir, "analise_comparativa_algoritmos.csv")
+            df.to_csv(csv_filename, index=False, decimal=',', sep=';')
+            print(f"Resultados salvos com sucesso em '{csv_filename}'")
+
 
 if __name__ == "__main__":
     main()
