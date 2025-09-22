@@ -1,4 +1,5 @@
 from geopy.distance import geodesic
+import numpy as np
 from graph import Graph
 from algorithms import dijkstra, greedy_search, a_star, depth_first_search, breadth_first_search
 
@@ -144,6 +145,7 @@ def build_road_network(graph, coords_dict, neighbors_count=4):
                 existing_edges.add(edge_tuple)
 
 def main():
+    ITERATIONS = 40  # Necessário para conseguir medir o tempo de execução da CPU, através da média dessas execuções. Uma única execução retorno 0.000 para a maioria dos algoritmos
     graph = Graph()
     # Mapeamento reverso de ID para Nome para facilitar a exibição
     id_to_name = {}
@@ -174,34 +176,69 @@ def main():
         depth_first_search
     ]
 
-    results = []
-    iterations = 40 # Necessário para conseguir medir o tempo de execução da CPU, através da média dessas execuções. Uma única execução retorno 0.000 para a maioria dos algoritmos
-    for algorithm_func in algorithms_to_run:
-        cpu_total_time = 0
-        for i in range(iterations):
+    # Estrutura para acumular os resultados
+    aggregated_results = {func.__name__: {"cpu_times": [], "memory_peaks": []} for func in algorithms_to_run}
+    # Armazena os resultados determinísticos da primeira execução
+    deterministic_results = {}
+
+    for i in range(ITERATIONS):
+        print(f"Executando rodada {i + 1}/{ITERATIONS}...")
+        for algorithm_func in algorithms_to_run:
             result = algorithm_func(graph, start_id, goal_id)
             if result:
-                cpu_total_time += result['cpu_time']
-        if result:
-            result['cpu_time'] = cpu_total_time/iterations
-            results.append(result)
+                # Acumula as métricas de performance
+                aggregated_results[algorithm_func.__name__]["cpu_times"].append(result["cpu_time"])
+                aggregated_results[algorithm_func.__name__]["memory_peaks"].append(result["memory_peak_kb"])
+
+                # Na primeira rodada, salva os resultados que não mudam
+                if i == 0:
+                    deterministic_results[algorithm_func.__name__] = result
+
+    # --- Pós-processamento e Cálculo das Estatísticas ---
+    summary_results = []
+    for func in algorithms_to_run:
+        algo_name = func.__name__
+        if algo_name in deterministic_results:
+            det_res = deterministic_results[algo_name]
+            agg_res = aggregated_results[algo_name]
+
+            # Calcula média e desvio padrão (stdev)
+            mean_cpu = np.mean(agg_res["cpu_times"])
+            stdev_cpu = np.std(agg_res["cpu_times"])
+
+            mean_mem = np.mean(agg_res["memory_peaks"])
+            stdev_mem = np.std(agg_res["memory_peaks"])
+
+            summary_results.append({
+                "name": det_res["name"],
+                "cost": det_res["cost"],
+                "nodes_expanded": det_res["nodes_expanded"],
+                "edges_evaluated": det_res["edges_evaluated"],
+                "path": det_res["path"],
+                "mean_cpu": mean_cpu,
+                "stdev_cpu": stdev_cpu,
+                "mean_mem": mean_mem,
+                "stdev_mem": stdev_mem,
+            })
 
     # --- Apresentação dos Resultados ---
     print("\n--- Tabela Comparativa de Resultados ---\n")
     header = (
         f"{'Algoritmo':<15} | {'Custo (km)':<12} | {'Nós Expandidos':<16} | {'Arestas Avaliadas':<20} | "
-        f"{'Pico Memória (KiB)':<20} | {'Tempo CPU (s)':<15} | {'Caminho Encontrado'}"
+        f"{'Pico Memória (μ ± σ KiB)':<28} | {'Tempo CPU (μ ± σ s)':<25} | {'Caminho Encontrado'}"
     )
     print(header)
-    print("-" * len(header))
+    print("-" * (len(header)+10))
     # Ordena os resultados pelo custo para facilitar a comparação
-    for res in sorted(results, key=lambda x: x['cost']):
+    for res in sorted(summary_results, key=lambda x: x['cost']):
         path_names = " -> ".join([id_to_name[i] for i in res['path']])
 
+        mem_stats_str = f"{res['mean_mem']:.2f} ± {res['stdev_mem']:.2f}"
+        cpu_stats_str = f"{res['mean_cpu']:.6f} ± {res['stdev_cpu']:.6f}"
         # Formatação da linha de resultado
         result_line = (
             f"{res['name']:<15} | {res['cost']:<12.2f} | {res['nodes_expanded']:<16} | {res['edges_evaluated']:<20} | "
-            f"{res['memory_peak_kb']:<20.2f} | {res['cpu_time']:<15.9f} | {path_names}"
+            f"{mem_stats_str:<28} | {cpu_stats_str:<25} | {path_names}"
         )
         print(result_line)
 
