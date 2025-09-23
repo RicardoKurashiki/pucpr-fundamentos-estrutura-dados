@@ -93,7 +93,7 @@ class Graph:
         def scale_coords(lat, lon):
             # Mapeia a longitude para a coordenada X
             x = ((lon - min_lon) / (max_lon - min_lon)) * (canvas_width - 2 * padding) + padding
-            # Mapeia a latitude para a coordenada Y (e inverte o eixo Y)
+            # Mapeia a latitude para a coordenada Y (e inverte o eixo Y, para que o sul esteja na parte debaixo)
             y = ((lat - min_lat) / (max_lat - min_lat)) * (canvas_height - 2 * padding) + padding
             return x, canvas_height - y
 
@@ -144,7 +144,7 @@ class Graph:
     def show(self, filename: str = "net.html"):
         net = self._generate_network()  # Gera a rede sem caminho destacado
 
-        # Solução definitiva para o erro de codificação: escrita manual em UTF-8
+        # Solução para o erro de codificação: escrita manual em UTF-8
         with open(filename, "w", encoding="utf-8") as f:
             f.write(net.generate_html())
 

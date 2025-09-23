@@ -5,8 +5,7 @@ import numpy as np
 from graph import Graph
 from algorithms import dijkstra, greedy_search, a_star, depth_first_search, breadth_first_search
 
-# --- Cenário: Malha Logística Nacional - 100 Maiores Cidades do Brasil ---
-
+# Malha Logística Nacional - 100 Maiores Cidades do Brasil (Censo 2022)
 coords = {
     "São Paulo": {"id": 1, "coord": (-23.5505, -46.6333)},
     "Rio de Janeiro": {"id": 2, "coord": (-22.9068, -43.1729)},
@@ -99,17 +98,17 @@ coords = {
     "Barueri": {"id": 89, "coord": (-23.5106, -46.8761)},
     "Governador Valadares": {"id": 90, "coord": (-18.8508, -41.9492)},
     "Volta Redonda": {"id": 91, "coord": (-22.5222, -44.1039)},
-    "Santa Maria": {"id": 92, "coord": (-29.6842, -53.8069)},
-    "Gravataí": {"id": 93, "coord": (-29.9442, -50.9931)},
-    "Viamão": {"id": 94, "coord": (-30.0811, -51.0233)},
+    "Vitória": {"id": 92, "coord": (-20.3194, -40.3378)},
+    "Santa Maria": {"id": 93, "coord": (-29.6842, -53.8069)},
+    "Gravataí": {"id": 94, "coord": (-29.9442, -50.9931)},
     "Imperatriz": {"id": 95, "coord": (-5.5261, -47.4756)},
     "Novo Hamburgo": {"id": 96, "coord": (-29.6875, -51.1319)},
     "Várzea Grande": {"id": 97, "coord": (-15.6469, -56.1333)},
     "Ipatinga": {"id": 98, "coord": (-19.4678, -42.5281)},
     "Juazeiro do Norte": {"id": 99, "coord": (-7.2128, -39.3158)},
     "Palmas": {"id": 100, "coord": (-10.1844, -48.3336)},
-    "Vitória": {"id": 101, "coord": (-20.3194, -40.3378)},
 }
+
 
 # Garante que as principais "artérias" do país existam no grafo.
 strategic_roads = [
