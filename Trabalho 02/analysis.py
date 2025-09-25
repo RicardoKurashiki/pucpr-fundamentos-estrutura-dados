@@ -33,12 +33,12 @@ def generate_analysis_charts(csv_path):
 
     challenges = df['desafio'].unique()
 
-    # --- Loop para Gerar Gráficos para Cada Desafio ---
+    # Loop para Gerar Gráficos para Cada Desafio
     for challenge in challenges:
         print(f"Gerando gráficos para o desafio: {challenge}...")
         df_challenge = df[df['desafio'] == challenge].sort_values(by='custo_km').set_index('algoritmo')
 
-        # --- Gráfico 1: Custo (km) ---
+        # Gráfico 1: Custo (km)
         plt.style.use('seaborn-v0_8-whitegrid')
         fig, ax = plt.subplots(figsize=(10, 6))
         bars = ax.bar(df_challenge.index, df_challenge['custo_km'], color='skyblue', zorder=2)
@@ -52,7 +52,7 @@ def generate_analysis_charts(csv_path):
         plt.savefig(os.path.join(output_dir, f'grafico_custo_{challenge}.png'))
         plt.close(fig)
 
-        # --- Gráfico 2: Eficiência da Busca (Nós e Arestas) ---
+        # Gráfico 2: Eficiência da Busca (Nós e Arestas)
         fig, ax = plt.subplots(figsize=(10, 6))
         width = 0.4
         x = np.arange(len(df_challenge.index))
@@ -79,7 +79,7 @@ def generate_analysis_charts(csv_path):
         plt.savefig(os.path.join(output_dir, f'grafico_eficiencia_{challenge}.png'))
         plt.close(fig)
 
-        # --- Gráfico 3: Tempo de CPU ---
+        # Gráfico 3: Tempo de CPU
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.bar(df_challenge.index, df_challenge['cpu_media'],
                yerr=df_challenge['cpu_desvio_padrao'], capsize=5, color='gold', zorder=2)
@@ -90,7 +90,7 @@ def generate_analysis_charts(csv_path):
         plt.savefig(os.path.join(output_dir, f'grafico_cpu_{challenge}.png'))
         plt.close(fig)
 
-        # --- Gráfico 4: Pico de Memória ---
+        # Gráfico 4: Pico de Memória
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.bar(df_challenge.index, df_challenge['memoria_media_kib'],
                yerr=df_challenge['memoria_desvio_padrao'], capsize=5, color='mediumpurple', zorder=2)
@@ -101,7 +101,7 @@ def generate_analysis_charts(csv_path):
         plt.savefig(os.path.join(output_dir, f'grafico_memoria_{challenge}.png'))
         plt.close(fig)
 
-    print(f"\nGráficos de análise salvos com sucesso na pasta '{output_dir}'.")
+    print(f"\nGráficos de análise salvos na pasta '{output_dir}'.")
 
 
 def create_summary_table(csv_path):
