@@ -66,35 +66,47 @@ class Graph:
         # que toda a física está desativada, resultando em um grafo estático.
         options = """
         var options = {
-          "edges": {
-            "smooth": {
-              "enabled": false
-            }
-          },
-          "physics": {
-            "enabled": false
-          }
+          "edges": { "smooth": { "enabled": false } },
+          "physics": { "enabled": false }
         }
         """
         net.set_options(options)
 
         # LÓGICA DE MAPEAMENTO GEOGRÁFICO
-        # 1. Encontrar os limites (min/max) de latitude e longitude dos nós
+        # Para exibir nós com coordenadas geográficas (latitude, longitude) em uma tela 2D (pixels),
+        # é necessário converter um sistema de coordenadas para outro. O metodo a seguir é uma
+        # projeção linear simples, também conhecida como normalização.
+
+        # 1. Encontrar a "caixa" (bounding box) que contém todos os nossos pontos geográficos.
         latitudes = [node.coord[0] for node in self.nodes]
         longitudes = [node.coord[1] for node in self.nodes]
         min_lat, max_lat = min(latitudes), max(latitudes)
         min_lon, max_lon = min(longitudes), max(longitudes)
 
-        # 2. Definir o tamanho do "canvas" onde o mapa será desenhado
+        # 2. Definir o tamanho do nosso "canvas" de destino onde o mapa será desenhado em pixels
         canvas_width = 1200
         canvas_height = 1000
-        padding = 50  # Deixa uma margem
+        padding = 50  # Uma margem para que os nós não fiquem colados nas bordas.
 
         def scale_coords(lat, lon):
-            # Mapeia a longitude para a coordenada X
-            x = ((lon - min_lon) / (max_lon - min_lon)) * (canvas_width - 2 * padding) + padding
-            # Mapeia a latitude para a coordenada Y (e inverte o eixo Y, para que o sul esteja na parte debaixo)
-            y = ((lat - min_lat) / (max_lat - min_lat)) * (canvas_height - 2 * padding) + padding
+            """
+            Converte uma coordenada geográfica (lat, lon) para uma coordenada de tela (x, y).
+            """
+            # 3. Normalização: Transforma a longitude em uma porcentagem (0 a 1) de sua posição
+            #    dentro da largura geográfica total (max_lon - min_lon).
+            #    Fórmula: (valor - mínimo) / (máximo - mínimo)
+            percent_x = (lon - min_lon) / (max_lon - min_lon)
+
+            # 4. Escalonamento: Multiplica a porcentagem pela largura do canvas para obter a posição em pixel.
+            x = (percent_x * (canvas_width - 2 * padding)) + padding
+
+            # 5. Repete o processo para a latitude (eixo Y).
+            percent_y = (lat - min_lat) / (max_lat - min_lat)
+            y = (percent_y * (canvas_height - 2 * padding)) + padding
+
+            # 6. Inversão do Eixo Y: No sistema de coordenadas geográficas, a latitude cresce para o norte (para cima).
+            #    Na maioria dos sistemas de tela, a coordenada Y cresce para baixo. Invertemos o Y
+            #    para que o mapa tenha a orientação correta (Norte em cima, Sul embaixo).
             return x, canvas_height - y
 
         # --- ADIÇÃO DE NÓS E ARESTAS ---
@@ -119,6 +131,10 @@ class Graph:
         return net
 
     def show_plain(self, filename: str = "net.html"):
+        """ Função para montagem do grafo com parametrização padrão - motor de física ativado - ocorrem artefatos quando
+            a densidade de arestas é muito grande (>3), pois o pyvis tenta posicionar os elementos de modo a não ter
+            arestas sobrepostas, o que fica inviável em grafos mais densos
+        """
         net = Network(height="800px", width="100%", bgcolor="#222222", font_color="white", notebook=True,
                       cdn_resources='in_line')
 

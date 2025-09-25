@@ -185,7 +185,7 @@ def greedy_search(graph, start_id, goal_id):
 
 def a_star(graph, start_id, goal_id):
     """
-    A* (A-Estrela): O melhor dos dois mundos. Combina a segurança do Dijkstra com a
+    A* (A-Estrela): Abordagem com o melhor dos dois mundos. Combina a segurança do Dijkstra com a
     velocidade do Greedy. Ele avalia os nós usando uma soma:
     f_score = g_score + h_score
     g_score = custo real desde o início (o que o Dijkstra usa)
